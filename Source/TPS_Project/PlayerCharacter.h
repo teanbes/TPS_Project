@@ -25,17 +25,16 @@ protected:
 	// Called for left and right movement
 	void MoveRight(float Value);
 
-	/**
-	*Called viua input to turn at a given rate.
-	* @param rate, this is a normalized rate, 1.0 = 100% of desired turn rate
-	*/
+	// Called viua input to turn at a given rate.
+	//@param rate, this is a normalized rate, 1.0 = 100% of desired turn rate
 	void TurnAtRate(float Rate);
 
-	/**
-	*Called viua input to look up/down at a given rate.
-	* @param rate, this is a normalized rate, 1.0 = 100% of desired turn rate
-	*/
+	// Called via input to look up/down at a given rate.
+	// @param rate, this is a normalized rate, 1.0 = 100% of desired turn rate
 	void LookUpAtRate(float Rate); 
+
+	// Called when the Fire Button is pressed
+	void FireWeapon();
 
 public:	
 	// Called every frame
@@ -45,26 +44,26 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
-	/** Camera boom positioning the camera behind tge player */
+	// Camera boom positioning the camera behind tge player 
 	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true")) // exposes a private variable to blueprint
 	class USpringArmComponent* CameraBoom;
-	/** Follow Camera */
+	// Follow Camera 
 	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true")) // exposes a private variable to blueprint
 	class UCameraComponent* FollowCamera;
 
-	/** Base turn rate (turn sensitivity), in deg/sec. Other scaling may affect final turn rate */
+	// Base turn rate (turn sensitivity), in deg/sec. Other scaling may affect final turn rate
 	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	float BaseTurnRate;
 
-	/** Base Luck up/down rate (look sensitivity), in deg/sec. Other scaling may affect final turn rate */
+	// Base Luck up/down rate (look sensitivity), in deg/sec. Other scaling may affect final turn rate
 	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	float  BaseLookUpRate;
 
 public:
-	/** Returns CameraBoom (SpringArmComponent) subobject */
+	// Returns CameraBoom (SpringArmComponent) subobject
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
-	/** Returns FollowCamera to subobject */
+	// Returns FollowCamera to subobject
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 

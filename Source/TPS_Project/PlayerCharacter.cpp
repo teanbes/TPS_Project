@@ -4,6 +4,7 @@
 #include "PlayerCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 
 // Sets default values
@@ -15,14 +16,25 @@ APlayerCharacter::APlayerCharacter() : BaseTurnRate(45.f), BaseLookUpRate(45.f)
 	// Creating USpringArmComponent and asigning to the CameraBoom (pulls in towards the player if there is collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 300.f; // The camera follows teh player at this distance
+	CameraBoom->TargetArmLength = 300.0f; // The camera follows teh player at this distance
 	CameraBoom->bUsePawnControlRotation = true; // controls rotation
 
-	// create a follo camera
+	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach camera to end of boom
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm, just follow the cameraboom rotation
 
+	// 
+	// Don't rotate player when the controller rotates. Let the controller only affect the camera.
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
+
+	// Player movement independent of camera movement
+	GetCharacterMovement()->bOrientRotationToMovement = true; // player moves in the direction of input...
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.0f, 0.f); // ... at this rotation rate
+	GetCharacterMovement()->JumpZVelocity = 600.0f;
+	GetCharacterMovement()->AirControl = 0.2f;
 
 }
 
@@ -72,6 +84,11 @@ void APlayerCharacter::LookUpAtRate(float Rate)
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds()); //  deg/sec
 }
 
+void APlayerCharacter::FireWeapon()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Firing Weapon"));
+}
+
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
@@ -91,8 +108,11 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAxis("LookUpRate", this, &APlayerCharacter::LookUpAtRate);
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+
 	PlayerInputComponent->BindAction("Jump",IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+
+	PlayerInputComponent->BindAction("FireButton", IE_Pressed, this, &APlayerCharacter::FireWeapon);
 
 
 }
