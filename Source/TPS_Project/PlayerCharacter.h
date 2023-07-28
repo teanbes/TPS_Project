@@ -59,6 +59,20 @@ private:
 	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	float  BaseLookUpRate;
 
+	// Randomizing shot sound 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+		class USoundCue* FireSound;
+
+	// Flash spawned at BarrelSocket of both weeapons
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+		class UParticleSystem* MuzzleFlash_L;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+		class UParticleSystem* MuzzleFlash_R;
+
+	// firing the weapon montage
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* HipFireMontage;
+
 public:
 	// Returns CameraBoom (SpringArmComponent) subobject
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }

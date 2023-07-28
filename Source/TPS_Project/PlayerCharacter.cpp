@@ -5,6 +5,10 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
+#include "Engine/SkeletalMeshSocket.h"
+#include "DrawDebugHelpers.h"
 
 
 // Sets default values
@@ -16,7 +20,7 @@ APlayerCharacter::APlayerCharacter() : BaseTurnRate(45.f), BaseLookUpRate(45.f)
 	// Creating USpringArmComponent and asigning to the CameraBoom (pulls in towards the player if there is collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 300.0f; // The camera follows teh player at this distance
+	CameraBoom->TargetArmLength = 300.f; // The camera follows teh player at this distance
 	CameraBoom->bUsePawnControlRotation = true; // controls rotation
 
 	// Create a follow camera
@@ -32,8 +36,8 @@ APlayerCharacter::APlayerCharacter() : BaseTurnRate(45.f), BaseLookUpRate(45.f)
 
 	// Player movement independent of camera movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // player moves in the direction of input...
-	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.0f, 0.f); // ... at this rotation rate
-	GetCharacterMovement()->JumpZVelocity = 600.0f;
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f); // ... at this rotation rate
+	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
 
 }
@@ -87,6 +91,63 @@ void APlayerCharacter::LookUpAtRate(float Rate)
 void APlayerCharacter::FireWeapon()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Firing Weapon"));
+	if (FireSound)
+	{
+		UGameplayStatics::PlaySound2D(this, FireSound);
+	}
+
+	const USkeletalMeshSocket* BarrelSocket_L = GetMesh()->GetSocketByName("BarrelSocket_L");// Getting the player mesh to get the socket to spawn the particles
+	const USkeletalMeshSocket* BarrelSocket_R = GetMesh()->GetSocketByName("BarrelSocket_R");
+	if (BarrelSocket_L && BarrelSocket_R)
+	{
+		const FTransform SocketTransform_L = BarrelSocket_L->GetSocketTransform(GetMesh());// getting transform of the new socket
+		const FTransform SocketTransform_R = BarrelSocket_R->GetSocketTransform(GetMesh());// getting transform of the new socket
+
+		// if MuzzleFlash, spawn the particle at socket transform and rotation
+		if (MuzzleFlash_L && MuzzleFlash_R)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash_L, SocketTransform_L);
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash_R, SocketTransform_R);
+
+		}
+
+		// Ray casting for firing left weapon
+		FHitResult FireHit_L;
+		const FVector Start_L{ SocketTransform_L.GetLocation() };
+		const FQuat Rotation_L { SocketTransform_L.GetRotation() };
+		const FVector RotationAxix_L{ Rotation_L.GetAxisX() };
+		const FVector End_L{ Start_L + RotationAxix_L * 50000.f };
+
+		// Ray casting for firing Right weapon
+		FHitResult FireHit_R;
+		const FVector Start_R{ SocketTransform_R.GetLocation() };
+		const FQuat Rotation_R{ SocketTransform_R.GetRotation() };
+		const FVector RotationAxix_R{ Rotation_R.GetAxisX() };
+		const FVector End_R{ Start_R + RotationAxix_R * 50000.f };
+
+		GetWorld()->LineTraceSingleByChannel(FireHit_L, Start_L, End_L, ECollisionChannel::ECC_Visibility);
+		GetWorld()->LineTraceSingleByChannel(FireHit_R, Start_R, End_R, ECollisionChannel::ECC_Visibility);
+		if (FireHit_L.bBlockingHit && FireHit_R.bBlockingHit)
+		{
+			DrawDebugLine(GetWorld(), Start_L, End_L, FColor::Red, false, 2.0f);
+			DrawDebugLine(GetWorld(), Start_R, End_R, FColor::Red, false, 2.0f);
+
+			DrawDebugPoint(GetWorld(), FireHit_L.Location, 5.0f, FColor::Red, false, 2.0f);
+			DrawDebugPoint(GetWorld(), FireHit_R.Location, 5.0f, FColor::Red, false, 2.0f);
+
+		}
+
+
+	}
+
+	// Play shooting animation
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && HipFireMontage)
+	{
+		AnimInstance->Montage_Play(HipFireMontage);
+		AnimInstance->Montage_JumpToSection(FName("StartFire"));
+	}
+
 }
 
 // Called every frame
