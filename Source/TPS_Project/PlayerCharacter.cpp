@@ -9,6 +9,7 @@
 #include "Sound/SoundCue.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "DrawDebugHelpers.h"
+#include "Particles/ParticleSystemComponent.h"
 
 
 // Sets default values
@@ -22,6 +23,7 @@ APlayerCharacter::APlayerCharacter() : BaseTurnRate(45.f), BaseLookUpRate(45.f)
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 300.f; // The camera follows teh player at this distance
 	CameraBoom->bUsePawnControlRotation = true; // controls rotation
+	CameraBoom->SocketOffset = FVector(0.0f, 50.0f, 50.0f); // Offset the camera for the crosshair
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -31,11 +33,11 @@ APlayerCharacter::APlayerCharacter() : BaseTurnRate(45.f), BaseLookUpRate(45.f)
 	// 
 	// Don't rotate player when the controller rotates. Let the controller only affect the camera.
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true; // to rotate towards mouse movement in the yaw
 	bUseControllerRotationRoll = false;
 
 	// Player movement independent of camera movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // player moves in the direction of input...
+	GetCharacterMovement()->bOrientRotationToMovement = false; // player moves in the direction of input...
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f); // ... at this rotation rate
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
@@ -111,6 +113,69 @@ void APlayerCharacter::FireWeapon()
 
 		}
 
+		FVector2D ViewPortSize;
+		//To get the size of th eviewport we need global GEngine variable
+		if (GEngine && GEngine->GameViewport)
+		{
+			GEngine->GameViewport->GetViewportSize(ViewPortSize); // GetViewportSize with fill in with ViewPortSize with th ecurrent size of th eviewport
+		}
+
+		// Get CrossHair Location on screen
+		FVector2D CrosshairLocation(ViewPortSize.X / 2.0f, ViewPortSize.Y / 2.0f);
+		CrosshairLocation.Y -= 35.0f; // Offseting Crosshair location
+		FVector CrosshairWorldPosition;
+		FVector CrosshairWorldDirection;
+
+		// Get world position and direction of crosshairs
+		bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(this, 0), CrosshairLocation, CrosshairWorldPosition,CrosshairWorldDirection);
+
+		if (bScreenToWorld) // if deprojection successful
+		{
+			// varibales for firing left weapon from crosshair position
+			FHitResult ScreenTraceHit_L;
+			const FVector Start_L{ CrosshairWorldPosition };
+			const FVector End_L{ CrosshairWorldPosition + CrosshairWorldDirection * 50000.f };
+
+			// varibales for firing right weapon from crosshair position 
+			FHitResult ScreenTraceHit_R;
+			const FVector Start_R{ CrosshairWorldPosition };
+			const FVector End_R{ CrosshairWorldPosition + CrosshairWorldDirection * 50000.f };
+
+			// To play the smoke particles until we hit something 
+			FVector BeamEndPoint_L{ End_L }; 
+			FVector BeamEndPoint_R{ End_R };
+
+			// Setting Line tracing from crosshair world position
+			GetWorld()->LineTraceSingleByChannel(ScreenTraceHit_L, Start_L, End_L, ECollisionChannel::ECC_Visibility);
+			GetWorld()->LineTraceSingleByChannel(ScreenTraceHit_R, Start_R, End_R, ECollisionChannel::ECC_Visibility);
+
+			// If we hit something
+			if (ScreenTraceHit_L.bBlockingHit && ScreenTraceHit_R.bBlockingHit) 
+			{
+				// Beam end point is now trace hit location
+				BeamEndPoint_L = ScreenTraceHit_L.Location;
+				BeamEndPoint_R = ScreenTraceHit_R.Location;
+
+				if (ImpactParticles)
+				{
+					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, ScreenTraceHit_L.Location);
+					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, ScreenTraceHit_R.Location);
+				}
+			}
+
+			if (BeamParticles)
+			{
+				UParticleSystemComponent* Beam_L = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticles, SocketTransform_L);
+				UParticleSystemComponent* Beam_R = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticles, SocketTransform_R);
+				if (Beam_L && Beam_R)
+				{
+					Beam_L->SetVectorParameter(FName("Target"), BeamEndPoint_L);
+					Beam_R->SetVectorParameter(FName("Target"), BeamEndPoint_R);
+				}
+			}
+		}
+
+		/*  ----This code traces the gun shots from the gun barrel socket----
 		// Ray casting for firing left weapon
 		FHitResult FireHit_L;
 		const FVector Start_L{ SocketTransform_L.GetLocation() };
@@ -125,19 +190,43 @@ void APlayerCharacter::FireWeapon()
 		const FVector RotationAxix_R{ Rotation_R.GetAxisX() };
 		const FVector End_R{ Start_R + RotationAxix_R * 50000.f };
 
+		// To play the smoke particles until we hit something
+		FVector BeamEndPoint_L{ End_L }; 
+		FVector BeamEndPoint_R{ End_R };
+
+
 		GetWorld()->LineTraceSingleByChannel(FireHit_L, Start_L, End_L, ECollisionChannel::ECC_Visibility);
 		GetWorld()->LineTraceSingleByChannel(FireHit_R, Start_R, End_R, ECollisionChannel::ECC_Visibility);
 		if (FireHit_L.bBlockingHit && FireHit_R.bBlockingHit)
 		{
-			DrawDebugLine(GetWorld(), Start_L, End_L, FColor::Red, false, 2.0f);
-			DrawDebugLine(GetWorld(), Start_R, End_R, FColor::Red, false, 2.0f);
+			//DrawDebugLine(GetWorld(), Start_L, End_L, FColor::Red, false, 2.0f);
+			//DrawDebugLine(GetWorld(), Start_R, End_R, FColor::Red, false, 2.0f);
+			//
+			//DrawDebugPoint(GetWorld(), FireHit_L.Location, 5.0f, FColor::Red, false, 2.0f);
+			//DrawDebugPoint(GetWorld(), FireHit_R.Location, 5.0f, FColor::Red, false, 2.0f);
 
-			DrawDebugPoint(GetWorld(), FireHit_L.Location, 5.0f, FColor::Red, false, 2.0f);
-			DrawDebugPoint(GetWorld(), FireHit_R.Location, 5.0f, FColor::Red, false, 2.0f);
+			BeamEndPoint_L = FireHit_L.Location;
+			BeamEndPoint_R = FireHit_R.Location;
+
+			if (ImpactParticles)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, FireHit_L.Location);
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, FireHit_R.Location);
+			}
 
 		}
 
-
+		if (BeamParticles)
+		{
+			UParticleSystemComponent* Beam_L = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticles, SocketTransform_L);
+			UParticleSystemComponent* Beam_R = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticles, SocketTransform_R);
+			if (Beam_L && Beam_R)
+			{
+				Beam_L->SetVectorParameter(FName("Target"), BeamEndPoint_L);
+				Beam_R->SetVectorParameter(FName("Target"), BeamEndPoint_R);
+			}
+		}
+		*/
 	}
 
 	// Play shooting animation
