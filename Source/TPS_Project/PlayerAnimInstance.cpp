@@ -40,7 +40,10 @@ void UPlayerAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(PlayerCharacter->GetVelocity()); // using Kismet library to create a rotator from a direction vector
 		
 		MovementOffsetYaw = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation,AimRotation).Yaw; //  get the Normal between the move and the rotation for strafing animation
-
+		if (PlayerCharacter->GetVelocity().Size() > 0.0f)
+		{
+			LastMovementOffsetYaw = MovementOffsetYaw;
+		}
 		//FString OffSetMessage =FString::Printf(TEXT("Movement offset: %f"),MovementRotation.Yaw); 
 
 		//FString MovementRotationMessage =FString::Printf(TEXT("Movement Rotation: %f"),MovementRotation.Yaw);
