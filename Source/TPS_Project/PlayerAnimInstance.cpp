@@ -4,6 +4,7 @@
 #include "PlayerAnimInstance.h"
 #include "PlayerCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h" 
 
 void UPlayerAnimInstance::UpdateAnimationProperties(float DeltaTime)
 {
@@ -31,6 +32,23 @@ void UPlayerAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		{
 			bIsAccelerating = false;
 		}
+
+		// calcualating Aim Base rotation
+		FRotator AimRotation = PlayerCharacter->GetBaseAimRotation(); // returns rotator corresponding in the direction we are aiming
+		FString RotationMessage = FString::Printf(TEXT("Base Aim Rotation: %f"), AimRotation.Yaw);
+
+		FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(PlayerCharacter->GetVelocity()); // using Kismet library to create a rotator from a direction vector
+		
+		MovementOffsetYaw = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation,AimRotation).Yaw; //  get the Normal between the move and the rotation for strafing animation
+
+		//FString OffSetMessage =FString::Printf(TEXT("Movement offset: %f"),MovementRotation.Yaw); 
+
+		//FString MovementRotationMessage =FString::Printf(TEXT("Movement Rotation: %f"),MovementRotation.Yaw);
+
+		//if (GEngine)
+		//{
+		//	GEngine->AddOnScreenDebugMessage(1, 0, FColor::White, OffSetMessage);
+		//}
 	}
 
 }
