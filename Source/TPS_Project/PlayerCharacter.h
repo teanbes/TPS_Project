@@ -65,14 +65,13 @@ protected:
 
 	UFUNCTION()
 	void FinishCrosshairBulletFire();
-	//
-	//void FireButtonPressed();
-	//void FireButtonReleased();
-	//
-	//void StartFireTimer();
-	//
-	//UFUNCTION()
-	//	void AutoFireReset();
+	
+	void FireButtonPressed();
+	void FireButtonReleased();
+	void StartFireTimer();
+	
+	UFUNCTION()
+	void AutoFireReset();
 
 public:	
 	// Called every frame
@@ -192,13 +191,13 @@ private:
 	bool bFiringBullet;
 	FTimerHandle CrosshairShootTimer;
 
-	// Left mouse button or right console trigger pressed
+	// Left mouse button or contoller right trigger pressed
 	bool bFireButtonPressed;
 
 	// True when we can fire. False when waiting for the timer
 	bool bShouldFire;
 
-	// Rate of automatic gun fire
+	// Rate of fire automatic gun
 	float AutomaticFireRate;
 
 	// Sets a timer between gunshots
