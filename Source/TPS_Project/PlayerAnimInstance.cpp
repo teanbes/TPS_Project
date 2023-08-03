@@ -44,6 +44,9 @@ void UPlayerAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		{
 			LastMovementOffsetYaw = MovementOffsetYaw;
 		}
+
+		bAiming = PlayerCharacter->GetAiming();
+
 		//FString OffSetMessage =FString::Printf(TEXT("Movement offset: %f"),MovementRotation.Yaw); 
 
 		//FString MovementRotationMessage =FString::Printf(TEXT("Movement Rotation: %f"),MovementRotation.Yaw);
