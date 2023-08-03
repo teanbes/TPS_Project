@@ -33,7 +33,20 @@ APlayerCharacter::APlayerCharacter() :
 	MouseHipTurnRate(1.0f),
 	MouseHipLookUpRate(1.0f),
 	MouseAimingTurnRate(0.2f),
-	MouseAimingLookUpRate(0.2f)
+	MouseAimingLookUpRate(0.2f),
+	// Crosshair spread factors
+	CrosshairSpreadMultiplier(0.0f),
+	CrosshairVelocityFactor(0.0f),
+	CrosshairInAirFactor(0.0f),
+	CrosshairAimFactor(0.0f),
+	CrosshairShootingFactor(0.0f),
+	// Bullet fire timer variables
+	ShootTimeDuration(0.05f),
+	bFiringBullet(false),
+	// Automatic fire variables
+	AutomaticFireRate(0.1f),
+	bShouldFire(true),
+	bFireButtonPressed(false)
 
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -195,60 +208,6 @@ void APlayerCharacter::FireWeapon()
 				}
 			}
 		}
-
-
-		/*  ----This code traces the gun shots from the gun barrel socket----
-		// Ray casting for firing left weapon
-		FHitResult FireHit_L;
-		const FVector Start_L{ SocketTransform_L.GetLocation() };
-		const FQuat Rotation_L { SocketTransform_L.GetRotation() };
-		const FVector RotationAxix_L{ Rotation_L.GetAxisX() };
-		const FVector End_L{ Start_L + RotationAxix_L * 50000.f };
-
-		// Ray casting for firing Right weapon
-		FHitResult FireHit_R;
-		const FVector Start_R{ SocketTransform_R.GetLocation() };
-		const FQuat Rotation_R{ SocketTransform_R.GetRotation() };
-		const FVector RotationAxix_R{ Rotation_R.GetAxisX() };
-		const FVector End_R{ Start_R + RotationAxix_R * 50000.f };
-
-		// To play the smoke particles until we hit something
-		FVector BeamEndPoint_L{ End_L }; 
-		FVector BeamEndPoint_R{ End_R };
-
-
-		GetWorld()->LineTraceSingleByChannel(FireHit_L, Start_L, End_L, ECollisionChannel::ECC_Visibility);
-		GetWorld()->LineTraceSingleByChannel(FireHit_R, Start_R, End_R, ECollisionChannel::ECC_Visibility);
-		if (FireHit_L.bBlockingHit && FireHit_R.bBlockingHit)
-		{
-			//DrawDebugLine(GetWorld(), Start_L, End_L, FColor::Red, false, 2.0f);
-			//DrawDebugLine(GetWorld(), Start_R, End_R, FColor::Red, false, 2.0f);
-			//
-			//DrawDebugPoint(GetWorld(), FireHit_L.Location, 5.0f, FColor::Red, false, 2.0f);
-			//DrawDebugPoint(GetWorld(), FireHit_R.Location, 5.0f, FColor::Red, false, 2.0f);
-
-			BeamEndPoint_L = FireHit_L.Location;
-			BeamEndPoint_R = FireHit_R.Location;
-
-			if (ImpactParticles)
-			{
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, FireHit_L.Location);
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, FireHit_R.Location);
-			}
-
-		}
-
-		if (BeamParticles)
-		{
-			UParticleSystemComponent* Beam_L = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticles, SocketTransform_L);
-			UParticleSystemComponent* Beam_R = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticles, SocketTransform_R);
-			if (Beam_L && Beam_R)
-			{
-				Beam_L->SetVectorParameter(FName("Target"), BeamEndPoint_L);
-				Beam_R->SetVectorParameter(FName("Target"), BeamEndPoint_R);
-			}
-		}
-		*/
 	}
 
 	// Play shooting animation
@@ -258,6 +217,8 @@ void APlayerCharacter::FireWeapon()
 		AnimInstance->Montage_Play(HipFireMontage);
 		AnimInstance->Montage_JumpToSection(FName("StartFire"));
 	}
+	//Start bullet fire timer for crosshairs
+	StartCrosshairBulletFire();
 
 }
 
@@ -272,7 +233,6 @@ bool APlayerCharacter::GetBeamEndLocations(const FVector& MuzzleSocketLocation_L
 
 	// Get CrossHair Location on screen
 	FVector2D CrosshairLocation(ViewPortSize.X / 2.0f, ViewPortSize.Y / 2.0f);
-	CrosshairLocation.Y -= 35.0f; // Offseting Crosshair location
 	FVector CrosshairWorldPosition;
 	FVector CrosshairWorldDirection;
 
@@ -375,7 +335,7 @@ void APlayerCharacter::SetLookRates()
 
 void APlayerCharacter::CalculateCrosshairSpread(float DeltaTime)
 {
-	FVector2D WalkSpeedRange{ 0.0f, 600.f };
+	FVector2D WalkSpeedRange{ 0.0f, 600.0f };
 	FVector2D VelocityMultiplierRange{ 0.0f, 1.0f };
 	FVector Velocity{ GetVelocity() };
 	Velocity.Z = 0.0f;
@@ -383,20 +343,55 @@ void APlayerCharacter::CalculateCrosshairSpread(float DeltaTime)
 	// Calculate crosshair velocity factor
 	CrosshairVelocityFactor = FMath::GetMappedRangeValueClamped(WalkSpeedRange, VelocityMultiplierRange, Velocity.Size());
 
-	// Calculate crosshair in air factor
-	if (GetCharacterMovement()->IsFalling()) // is in air?
+	// If player is in the air, calculate crosshair in air factor
+	//  FMath::FInterpTo takes a target and  interSpeed, this are the magic numbers
+	if (GetCharacterMovement()->IsFalling()) 
 	{
 		// Spread the crosshairs slowly while in air
 		CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 2.25f, DeltaTime, 2.25f);
 	}
-	else // Character is on the ground
+	else // Character is on the ground 
 	{
 		// Shrink the crosshairs rapidly while on the ground
 		CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 0.0f, DeltaTime, 30.0f);
 	}
 
-	CrosshairSpreadMultiplier = 0.5f + CrosshairVelocityFactor + CrosshairInAirFactor;
+	// Calculate crosshair aim factor
+	if (bAiming) // Are we aiming?
+	{
+		// Shrink crosshairs a small amount very quickly
+		CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.6f, DeltaTime, 30.0f);
 	}
+	else // Not aiming
+	{
+		// Spread crosshairs back to normal very quickly
+		CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.0f, DeltaTime, 30.0f);
+	}
+
+	// True 0.05 second after firing
+	if (bFiringBullet)
+	{
+		CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, 0.3f, DeltaTime, 60.0f);
+	}
+	else
+	{
+		CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, 0.0f, DeltaTime, 60.0f);
+	}
+
+	CrosshairSpreadMultiplier = 0.5f + CrosshairVelocityFactor + CrosshairInAirFactor - CrosshairAimFactor + CrosshairShootingFactor;
+}
+
+void APlayerCharacter::StartCrosshairBulletFire()
+{
+	bFiringBullet = true;
+
+	GetWorldTimerManager().SetTimer(CrosshairShootTimer, this, &APlayerCharacter::FinishCrosshairBulletFire, ShootTimeDuration);
+}
+
+void APlayerCharacter::FinishCrosshairBulletFire()
+{
+	bFiringBullet = false;
+}
 
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
