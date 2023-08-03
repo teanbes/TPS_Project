@@ -36,6 +36,18 @@ protected:
 	// Called when the Fire Button is pressed
 	void FireWeapon();
 
+	// Calculation for shotting stating and end location
+	bool GetBeamEndLocations(const FVector& MuzzleSocketLocation_L, FVector& OutBeamLocation_L, const FVector& MuzzleSocketLocation_R, FVector& OutBeamLocation_R);
+
+	// Set bAiming to true or false with button press
+	void AimingButtonPressed();
+	void AimingButtonReleased();
+
+	void CameraInterpZoom(float DeltaTime);
+
+	// Set BaseTurnRate and BaseLookUpRate based on aiming
+	///void SetLookRates();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -80,10 +92,23 @@ private:
 	// bullets smoke trail
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UParticleSystem* BeamParticles;
-
-	bool GetBeamEndLocations(const FVector& MuzzleSocketLocation_L, FVector& OutBeamLocation_L, const FVector& MuzzleSocketLocation_R, FVector& OutBeamLocation_R);
 	
+	// True when aiming
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	bool bAiming;
 
+	// Default camera field of view value
+	float CameraDefaultFOV;
+
+	// Aiming field of view
+	float CameraZoomedFOV;
+
+	// Current field of view this frame
+	float CameraCurrentFOV;
+
+	// Interpolate speed for zooming when aiming
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	float ZoomInterpSpeed;
 
 public:
 	// Returns CameraBoom (SpringArmComponent) subobject

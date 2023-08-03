@@ -13,7 +13,18 @@
 
 
 // Sets default values
-APlayerCharacter::APlayerCharacter() : BaseTurnRate(45.f), BaseLookUpRate(45.f)
+APlayerCharacter::APlayerCharacter() : 
+	// Base rates for turning/looking up
+	BaseTurnRate(45.0f), 
+	BaseLookUpRate(45.0f), 
+	// true when aiming the weapon
+	bAiming(false),
+	// Camera field of view values
+	CameraDefaultFOV(0.f), // setting in BeginPlay
+	CameraZoomedFOV(40.f),
+	CameraCurrentFOV(0.f),
+	ZoomInterpSpeed(30.f)
+
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -21,9 +32,9 @@ APlayerCharacter::APlayerCharacter() : BaseTurnRate(45.f), BaseLookUpRate(45.f)
 	// Creating USpringArmComponent and asigning to the CameraBoom (pulls in towards the player if there is collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 300.f; // The camera follows teh player at this distance
+	CameraBoom->TargetArmLength = 260.0f; // The camera follows teh player at this distance
 	CameraBoom->bUsePawnControlRotation = true; // controls rotation
-	CameraBoom->SocketOffset = FVector(0.0f, 50.0f, 50.0f); // Offset the camera for the crosshair
+	CameraBoom->SocketOffset = FVector(0.0f, 50.0f, 60.0f); // Offset the camera for the crosshair
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -38,7 +49,7 @@ APlayerCharacter::APlayerCharacter() : BaseTurnRate(45.f), BaseLookUpRate(45.f)
 
 	// Player movement independent of camera movement
 	GetCharacterMovement()->bOrientRotationToMovement = false; // player moves in the direction of input...
-	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f); // ... at this rotation rate
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ... at this rotation rate
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
 
@@ -48,7 +59,13 @@ APlayerCharacter::APlayerCharacter() : BaseTurnRate(45.f), BaseLookUpRate(45.f)
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	UE_LOG(LogTemp, Warning, TEXT("BeginPlay() called!"));
+	//UE_LOG(LogTemp, Warning, TEXT("BeginPlay() called!"));
+
+	if (FollowCamera)
+	{
+		CameraDefaultFOV = GetFollowCamera()->FieldOfView;
+		CameraCurrentFOV = CameraDefaultFOV;
+	}
 	
 }
 
@@ -140,9 +157,6 @@ void APlayerCharacter::FireWeapon()
 			}
 		}
 
-		
-
-		
 
 		/*  ----This code traces the gun shots from the gun barrel socket----
 		// Ray casting for firing left weapon
@@ -205,34 +219,6 @@ void APlayerCharacter::FireWeapon()
 		AnimInstance->Montage_Play(HipFireMontage);
 		AnimInstance->Montage_JumpToSection(FName("StartFire"));
 	}
-
-}
-
-// Called every frame
-void APlayerCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-// Called to bind functionality to input
-void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	check(PlayerInputComponent);
-
-	PlayerInputComponent->BindAxis("MoveForward", this, &APlayerCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &APlayerCharacter::MoveRight);
-	PlayerInputComponent->BindAxis("TurnRate", this, &APlayerCharacter::TurnAtRate);
-	PlayerInputComponent->BindAxis("LookUpRate", this, &APlayerCharacter::LookUpAtRate);
-	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
-
-	PlayerInputComponent->BindAction("Jump",IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
-
-	PlayerInputComponent->BindAction("FireButton", IE_Pressed, this, &APlayerCharacter::FireWeapon);
-
 
 }
 
@@ -307,4 +293,62 @@ bool APlayerCharacter::GetBeamEndLocations(const FVector& MuzzleSocketLocation_L
 	return false;
 }
 
+void APlayerCharacter::AimingButtonPressed()
+{
+	bAiming = true;
+}
 
+void APlayerCharacter::AimingButtonReleased()
+{
+	bAiming = false;
+}
+
+void APlayerCharacter::CameraInterpZoom(float DeltaTime)
+{
+	// If Aiming, Smooth camera field of view
+	if (bAiming)
+	{
+		// Smooth to zoomed
+		CameraCurrentFOV = FMath::FInterpTo(CameraCurrentFOV, CameraZoomedFOV, DeltaTime, ZoomInterpSpeed);
+	}
+	else
+	{
+		// Smooth to unzoomed 
+		CameraCurrentFOV = FMath::FInterpTo(CameraCurrentFOV, CameraDefaultFOV, DeltaTime, ZoomInterpSpeed);
+	}
+	GetFollowCamera()->SetFieldOfView(CameraCurrentFOV);
+
+}
+
+// Called every frame
+void APlayerCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	// Handle zoom smoothing transition
+	CameraInterpZoom(DeltaTime);
+
+}
+
+// Called to bind functionality to input
+void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	check(PlayerInputComponent);
+
+	PlayerInputComponent->BindAxis("MoveForward", this, &APlayerCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &APlayerCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("TurnRate", this, &APlayerCharacter::TurnAtRate);
+	PlayerInputComponent->BindAxis("LookUpRate", this, &APlayerCharacter::LookUpAtRate);
+	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
+	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+
+	PlayerInputComponent->BindAction("FireButton", IE_Pressed, this, &APlayerCharacter::FireWeapon);
+
+	PlayerInputComponent->BindAction("AimingButton", IE_Pressed, this, &APlayerCharacter::AimingButtonPressed);
+	PlayerInputComponent->BindAction("AimingButton", IE_Released, this, &APlayerCharacter::AimingButtonReleased);
+
+}
