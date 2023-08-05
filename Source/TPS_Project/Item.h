@@ -50,6 +50,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	class USphereComponent* AreaSphere;
 
+	// to set Item name on widget
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	FString ItemName;
+
 public:
 	// getter for PickupWidget
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupWidget; }
