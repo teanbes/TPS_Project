@@ -225,7 +225,7 @@ void APlayerCharacter::FireWeapon()
 
 bool APlayerCharacter::GetBeamEndLocations(const FVector& MuzzleSocketLocation_L, FVector& OutBeamLocation_L, const FVector& MuzzleSocketLocation_R, FVector& OutBeamLocation_R)
 {
-	//To get the size of th eviewport we need global GEngine variable
+	// To get the size of the viewport we need global GEngine variable
 	FVector2D ViewPortSize;
 	if (GEngine && GEngine->GameViewport)
 	{
@@ -424,6 +424,26 @@ void APlayerCharacter::AutoFireReset()
 	{
 		StartFireTimer();
 	}
+}
+
+bool APlayerCharacter::TraceUnderCrooshairs(FHitResult& OutHitResult)
+{
+	// To get the size of the viewport we need global GEngine variable
+	FVector2D ViewPortSize;
+	if (GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->GetViewportSize(ViewPortSize); // GetViewportSize will fill in with ViewPortSize with the current size of the viewport
+	}
+
+	// Get CrossHair Location on screen
+	FVector2D CrosshairLocation(ViewPortSize.X / 2.0f, ViewPortSize.Y / 2.0f);
+	FVector CrosshairWorldPosition;
+	FVector CrosshairWorldDirection;
+
+	// Get world position and direction of crosshairs
+	bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(this, 0), CrosshairLocation, CrosshairWorldPosition, CrosshairWorldDirection);
+
+	return false;
 }
 
 // Called every frame

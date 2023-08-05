@@ -73,6 +73,9 @@ protected:
 	UFUNCTION()
 	void AutoFireReset();
 
+	// Line trace for detecting what we hit
+	bool TraceUnderCrooshairs(FHitResult& OutHitResult);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

@@ -17,18 +17,19 @@ AItem::AItem()
 	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
 	CollisionBox->SetupAttachment(ItemMesh);
 	//CollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	//CollisionBox->SetCollisionResponseToChannel(
-	//	ECollisionChannel::ECC_Visibility,
-	//	ECollisionResponse::ECR_Block);
+	//CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility,ECollisionResponse::ECR_Block);
 	//
-	//PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
-	//PickupWidget->SetupAttachment(GetRootComponent());
+	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
+	PickupWidget->SetupAttachment(GetRootComponent());
 }
 
 // Called when the game starts or when spawned
 void AItem::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Hide Pickup widget
+	PickupWidget->SetVisibility(false);
 	
 }
 
