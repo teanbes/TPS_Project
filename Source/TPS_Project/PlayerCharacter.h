@@ -221,6 +221,10 @@ private:
 	// Number of overlapped AItems
 	int8 OverlappedItemCount;
 
+	// to store the AItem hitted last frame
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
+	class AItem* TraceHitItemLastFrame;
+
 
 public:
 	// Returns CameraBoom (SpringArmComponent) subobject

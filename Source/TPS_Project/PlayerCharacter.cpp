@@ -445,7 +445,6 @@ bool APlayerCharacter::TraceUnderCrooshairs(FHitResult& OutHitResult, FVector& O
 
 void APlayerCharacter::TraceForItems()
 {
-	// temp to test
 	if (bShouldTraceForItems)
 	{
 		FHitResult ItemTraceResult;
@@ -459,7 +458,23 @@ void APlayerCharacter::TraceForItems()
 				// Enable Item's Pickup Widget
 				HitItem->GetPickupWidget()->SetVisibility(true);
 			}
+			// We hit an AItem last frame
+			if (TraceHitItemLastFrame)
+			{
+				if (HitItem != TraceHitItemLastFrame)
+				{
+					//if we are not hitting the Aitem, disable item visivility
+					TraceHitItemLastFrame->GetPickupWidget()->SetVisibility(false);
+				}
+			}
+			// Store HitItem for next frame
+			TraceHitItemLastFrame = HitItem;
 		}
+	}
+	else if (TraceHitItemLastFrame)
+	{
+		// If player not overlaping sphere, disable item visivility
+		TraceHitItemLastFrame->GetPickupWidget()->SetVisibility(false);
 	}
 }
 
