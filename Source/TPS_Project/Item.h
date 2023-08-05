@@ -37,6 +37,7 @@ private:
 	class UWidgetComponent* PickupWidget;
 
 public:
-	//FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupWidget; }
+	// getter for PickupWidget
+	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupWidget; }
 
 };

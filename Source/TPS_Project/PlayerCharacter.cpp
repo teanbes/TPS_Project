@@ -10,6 +10,8 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "DrawDebugHelpers.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Item.h"
+#include "Components/WidgetComponent.h"
 
 
 // Sets default values
@@ -20,15 +22,15 @@ APlayerCharacter::APlayerCharacter() :
 	// true when aiming the weapon
 	bAiming(false),
 	// Camera field of view values
-	CameraDefaultFOV(0.f), // setting in BeginPlay
-	CameraZoomedFOV(40.f),
-	CameraCurrentFOV(0.f),
-	ZoomInterpSpeed(30.f),
+	CameraDefaultFOV(0.0f), // setting in BeginPlay
+	CameraZoomedFOV(40.0f),
+	CameraCurrentFOV(0.0f),
+	ZoomInterpSpeed(30.0f),
 	// Turn rates for aiming
-	HipTurnRate(90.f),
-	HipLookUpRate(90.f),
-	AimingTurnRate(20.f),
-	AimingLookUpRate(20.f),
+	HipTurnRate(90.0f),
+	HipLookUpRate(90.0f),
+	AimingTurnRate(20.0f),
+	AimingLookUpRate(20.0f),
 	// Mouse look sensitivity scale factors 
 	MouseHipTurnRate(1.0f),
 	MouseHipLookUpRate(1.0f),
@@ -46,7 +48,9 @@ APlayerCharacter::APlayerCharacter() :
 	// Automatic fire variables
 	AutomaticFireRate(0.1f),
 	bShouldFire(true),
-	bFireButtonPressed(false)
+	bFireButtonPressed(false),
+	// Line tracing variables
+	TraceLenght(50'000.0f)
 	
 
 {
@@ -245,12 +249,12 @@ bool APlayerCharacter::GetBeamEndLocations(const FVector& MuzzleSocketLocation_L
 		// varibales for firing left weapon from crosshair position
 		FHitResult ScreenTraceHit_L;
 		const FVector Start_L{ CrosshairWorldPosition };
-		const FVector End_L{ CrosshairWorldPosition + CrosshairWorldDirection * 50000.f };
+		const FVector End_L{ CrosshairWorldPosition + CrosshairWorldDirection * TraceLenght };
 
 		// varibales for firing right weapon from crosshair position 
 		FHitResult ScreenTraceHit_R;
 		const FVector Start_R{ CrosshairWorldPosition };
-		const FVector End_R{ CrosshairWorldPosition + CrosshairWorldDirection * 50000.f };
+		const FVector End_R{ CrosshairWorldPosition + CrosshairWorldDirection * TraceLenght };
 
 		// To play the smoke particles until we hit something 
 		//FVector BeamEndPoint_L{ End_L };
@@ -426,6 +430,7 @@ void APlayerCharacter::AutoFireReset()
 	}
 }
 
+// trace to get objects in the world
 bool APlayerCharacter::TraceUnderCrooshairs(FHitResult& OutHitResult)
 {
 	// To get the size of the viewport we need global GEngine variable
@@ -443,6 +448,17 @@ bool APlayerCharacter::TraceUnderCrooshairs(FHitResult& OutHitResult)
 	// Get world position and direction of crosshairs
 	bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(this, 0), CrosshairLocation, CrosshairWorldPosition, CrosshairWorldDirection);
 
+	if (bScreenToWorld)
+	{
+		// Trace from crosshair to world
+		FVector Start{ CrosshairWorldPosition };
+		const FVector End{ Start + CrosshairWorldDirection * TraceLenght };
+		GetWorld()->LineTraceSingleByChannel(OutHitResult, Start, End, ECollisionChannel::ECC_Visibility);
+		if (OutHitResult.bBlockingHit)
+		{
+			return true;
+		}
+	}
 	return false;
 }
 
@@ -460,6 +476,18 @@ void APlayerCharacter::Tick(float DeltaTime)
 	// Calculate crosshair spread multiplier
 	CalculateCrosshairSpread(DeltaTime);
 
+	// temp to test
+	FHitResult ItemTraceResult;
+	TraceUnderCrooshairs(ItemTraceResult);
+	if (ItemTraceResult.bBlockingHit)
+	{
+		AItem* HitItem = Cast<AItem>(ItemTraceResult.GetActor());
+		if (HitItem && HitItem->GetPickupWidget())
+		{
+			// Enable Item's Pickup Widget
+			HitItem->GetPickupWidget()->SetVisibility(true);
+		}
+	}
 
 }
 
