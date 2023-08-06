@@ -54,8 +54,11 @@ protected:
 	UFUNCTION()
 	void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	// Sets the Active Stars array of bools based on rarity
+	// Active Stars array of bools based on rarity
 	void SetActiveStars();
+
+	// Item's properties per state
+	void SetItemProperties(EItemState State);
 
 public:	
 	// Called every frame
@@ -105,6 +108,6 @@ public:
 	FORCEINLINE UBoxComponent* GetCollisionBox() const { return CollisionBox; }
 
 	FORCEINLINE EItemState GetItemState() const { return ItemState; }
-	FORCEINLINE void SetItemState(EItemState State) { ItemState = State; }
+	void SetItemState(EItemState State);
 
 };
