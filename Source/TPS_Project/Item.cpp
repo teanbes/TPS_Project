@@ -152,9 +152,7 @@ void AItem::SetItemProperties(EItemState State)
 			ItemMesh->SetSimulatePhysics(true);
 			ItemMesh->SetEnableGravity(true);
 			ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-			ItemMesh->SetCollisionResponseToChannel(
-				ECollisionChannel::ECC_WorldStatic,
-				ECollisionResponse::ECR_Block);
+			ItemMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
 			// AreaSphere properties
 			AreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 			AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);

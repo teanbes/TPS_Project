@@ -514,10 +514,14 @@ void APlayerCharacter::EquipWeapon(AWeapon* WeaponToEquip)
 	}
 }
 
+// Throw weapon
 void APlayerCharacter::DropWeapon()
 {
 	FDetachmentTransformRules DetachmentTransformRules(EDetachmentRule::KeepWorld, true);
 	EquippedWeapon->GetItemMesh()->DetachFromComponent(DetachmentTransformRules);
+
+	EquippedWeapon->SetItemState(EItemState::EIS_Falling);
+	EquippedWeapon->ThrowWeapon();
 }
 
 void APlayerCharacter::SelectButtonPressed()
@@ -527,6 +531,7 @@ void APlayerCharacter::SelectButtonPressed()
 
 void APlayerCharacter::SelectButtonReleased()
 {
+
 }
 
 // Called every frame
