@@ -19,6 +19,18 @@ enum class EItemRarity : uint8
 	EIR_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
+UENUM(BlueprintType)
+enum class EItemState : uint8
+{
+	EIS_Pickup UMETA(DisplayName = "Pickup"),
+	EIS_EquipInterping UMETA(DisplayName = "EquipInterping"),
+	EIS_PickedUp UMETA(DisplayName = "PickedUp"),
+	EIS_Equipped UMETA(DisplayName = "Equipped"),
+	EIS_Falling UMETA(DisplayName = "Falling"),
+
+	EIS_MAX UMETA(DisplayName = "DefaultMAX")
+};
+
 UCLASS()
 class TPS_PROJECT_API AItem : public AActor
 {
@@ -66,7 +78,7 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	class USphereComponent* AreaSphere;
 
-	// to set Item name on widget
+	// Item name on widget
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	FString ItemName;
 
@@ -81,6 +93,10 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	TArray<bool> ActiveStars;
 
+	// Item states
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	EItemState ItemState;
+
 public:
 	// getter for PickupWidget
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupWidget; }
@@ -88,5 +104,7 @@ public:
 	FORCEINLINE	USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE UBoxComponent* GetCollisionBox() const { return CollisionBox; }
 
+	FORCEINLINE EItemState GetItemState() const { return ItemState; }
+	FORCEINLINE void SetItemState(EItemState State) { ItemState = State; }
 
 };
