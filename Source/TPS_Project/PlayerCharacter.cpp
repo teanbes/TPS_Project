@@ -12,6 +12,10 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Item.h"
 #include "Components/WidgetComponent.h"
+#include "Weapon.h"
+#include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
+
 
 
 // Sets default values
@@ -98,7 +102,8 @@ void APlayerCharacter::BeginPlay()
 		CameraDefaultFOV = GetFollowCamera()->FieldOfView;
 		CameraCurrentFOV = CameraDefaultFOV;
 	}
-	
+	// Spawn default weapons and attach and equip
+	EquipWeapon(SpawnDefaultWeapon());
 }
 
 void APlayerCharacter::MoveForward(float Value)
@@ -475,6 +480,41 @@ void APlayerCharacter::TraceForItems()
 	{
 		// If player not overlaping sphere, disable item visivility
 		TraceHitItemLastFrame->GetPickupWidget()->SetVisibility(false);
+	}
+}
+
+//**************************************************still missing left gun***** 
+AWeapon* APlayerCharacter::SpawnDefaultWeapon()
+{
+	// Check DefaultWeaponClass (TSubclassOf)
+	if (DefaultWeaponClass)
+	{
+		// Spawn Weapon
+		return GetWorld()->SpawnActor<AWeapon>(DefaultWeaponClass);
+	}
+	return nullptr;
+}
+
+//**************************************************still missing left gun***** 
+void APlayerCharacter::EquipWeapon(AWeapon* WeaponToEquip)
+{
+	if (WeaponToEquip)
+	{
+		// Ignore Channels on AreaSphere
+		WeaponToEquip->GetAreaSphere()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		// Ignore collisions CollisionBox
+		WeaponToEquip->GetCollisionBox()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+
+		// Get the Hand Socket
+		const USkeletalMeshSocket* HandSocket = GetMesh()->GetSocketByName(
+			FName("RightHandSocket"));
+		if (HandSocket)
+		{
+			// Attach the Weapon to the hand socket RightHandSocket
+			HandSocket->AttachActor(WeaponToEquip, GetMesh());
+		}
+		// Set EquippedWeapon to the newly spawned Weapon
+		EquippedWeapon = WeaponToEquip;
 	}
 }
 

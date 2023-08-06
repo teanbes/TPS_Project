@@ -79,6 +79,12 @@ protected:
 	// trace items if OverlappedItemCount > 0
 	void TraceForItems();
 
+	// Spawns a default weapon on hand socket
+	class AWeapon* SpawnDefaultWeapon();
+
+	// Sttach weapon to player mesh 
+	void EquipWeapon(AWeapon* WeaponToEquip);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -225,6 +231,13 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
 	class AItem* TraceHitItemLastFrame;
 
+	// Current Weapon
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	AWeapon* EquippedWeapon;
+
+	// Set default Weapon in Blueprints
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AWeapon> DefaultWeaponClass;
 
 public:
 	// Returns CameraBoom (SpringArmComponent) subobject
