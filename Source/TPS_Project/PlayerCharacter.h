@@ -85,6 +85,12 @@ protected:
 	// Sttach weapon to player mesh 
 	void EquipWeapon(AWeapon* WeaponToEquip);
 
+	// Drop weapon
+	void DropWeapon();
+
+	void SelectButtonPressed();
+	void SelectButtonReleased();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

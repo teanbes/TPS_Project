@@ -514,6 +514,21 @@ void APlayerCharacter::EquipWeapon(AWeapon* WeaponToEquip)
 	}
 }
 
+void APlayerCharacter::DropWeapon()
+{
+	FDetachmentTransformRules DetachmentTransformRules(EDetachmentRule::KeepWorld, true);
+	EquippedWeapon->GetItemMesh()->DetachFromComponent(DetachmentTransformRules);
+}
+
+void APlayerCharacter::SelectButtonPressed()
+{
+	DropWeapon();
+}
+
+void APlayerCharacter::SelectButtonReleased()
+{
+}
+
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
@@ -555,6 +570,9 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAction("AimingButton", IE_Pressed, this, &APlayerCharacter::AimingButtonPressed);
 	PlayerInputComponent->BindAction("AimingButton", IE_Released, this, &APlayerCharacter::AimingButtonReleased);
+
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::SelectButtonPressed);
+	PlayerInputComponent->BindAction("Interact", IE_Released, this, &APlayerCharacter::SelectButtonReleased);
 
 }
 
