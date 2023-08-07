@@ -457,23 +457,23 @@ void APlayerCharacter::TraceForItems()
 		TraceUnderCrooshairs(ItemTraceResult, HitLocation);
 		if (ItemTraceResult.bBlockingHit)
 		{
-			AItem* HitItem = Cast<AItem>(ItemTraceResult.GetActor());
-			if (HitItem && HitItem->GetPickupWidget())
+			TraceHitItem = Cast<AItem>(ItemTraceResult.GetActor());
+			if (TraceHitItem && TraceHitItem->GetPickupWidget())
 			{
 				// Enable Item's Pickup Widget
-				HitItem->GetPickupWidget()->SetVisibility(true);
+				TraceHitItem->GetPickupWidget()->SetVisibility(true);
 			}
 			// We hit an AItem last frame
 			if (TraceHitItemLastFrame)
 			{
-				if (HitItem != TraceHitItemLastFrame)
+				if (TraceHitItem != TraceHitItemLastFrame)
 				{
 					//if we are not hitting the Aitem, disable item visivility
 					TraceHitItemLastFrame->GetPickupWidget()->SetVisibility(false);
 				}
 			}
 			// Store HitItem for next frame
-			TraceHitItemLastFrame = HitItem;
+			TraceHitItemLastFrame = TraceHitItem;
 		}
 	}
 	else if (TraceHitItemLastFrame)
@@ -483,7 +483,7 @@ void APlayerCharacter::TraceForItems()
 	}
 }
 
-//**************************************************still missing left gun***** 
+
 AWeapon* APlayerCharacter::SpawnDefaultWeapon()
 {
 	// Check DefaultWeaponClass (TSubclassOf)
@@ -495,22 +495,33 @@ AWeapon* APlayerCharacter::SpawnDefaultWeapon()
 	return nullptr;
 }
 
-//**************************************************still missing left gun***** 
 void APlayerCharacter::EquipWeapon(AWeapon* WeaponToEquip)
 {
 	if (WeaponToEquip)
 	{
 		// Get the Hand Socket
-		const USkeletalMeshSocket* HandSocket = GetMesh()->GetSocketByName(
-			FName("RightHandSocket"));
-		if (HandSocket)
+		const USkeletalMeshSocket* HandSocket_R = GetMesh()->GetSocketByName(FName("RightHandSocket"));
+		const USkeletalMeshSocket* HandSocket_L = GetMesh()->GetSocketByName(FName("LeftHandSocket"));
+		if (HandSocket_R && HandSocket_L)
 		{
-			// Attach the Weapon to the hand socket RightHandSocket
-			HandSocket->AttachActor(WeaponToEquip, GetMesh());
+			// Spawn an instance of the weapon for each hand
+			AWeapon* Weapon_R = WeaponToEquip;
+			AWeapon* Weapon_L = GetWorld()->SpawnActor<AWeapon>(WeaponToEquip->GetClass());
+
+			if (Weapon_R && Weapon_L)
+			{
+				//// Attach the Weapon to the hand socket RightHandSocket
+				HandSocket_R->AttachActor(Weapon_R, GetMesh());
+				HandSocket_L->AttachActor(Weapon_L, GetMesh());
+
+				// Set EquippedWeapon to the spawned Weapon
+				EquippedWeapon_R = Weapon_R;
+				EquippedWeapon_L = Weapon_L;
+				// Set the item state for each weapon
+				EquippedWeapon_R->SetItemState(EItemState::EIS_Equipped);
+				EquippedWeapon_L->SetItemState(EItemState::EIS_Equipped);
+			}
 		}
-		// Set EquippedWeapon to the newly spawned Weapon
-		EquippedWeapon = WeaponToEquip;
-		EquippedWeapon->SetItemState(EItemState::EIS_Equipped);
 	}
 }
 
@@ -518,20 +529,38 @@ void APlayerCharacter::EquipWeapon(AWeapon* WeaponToEquip)
 void APlayerCharacter::DropWeapon()
 {
 	FDetachmentTransformRules DetachmentTransformRules(EDetachmentRule::KeepWorld, true);
-	EquippedWeapon->GetItemMesh()->DetachFromComponent(DetachmentTransformRules);
+	EquippedWeapon_R->GetItemMesh()->DetachFromComponent(DetachmentTransformRules);
 
-	EquippedWeapon->SetItemState(EItemState::EIS_Falling);
-	EquippedWeapon->ThrowWeapon();
+	EquippedWeapon_R->SetItemState(EItemState::EIS_Falling);
+	EquippedWeapon_R->ThrowWeapon();
+
+	EquippedWeapon_L->GetItemMesh()->DetachFromComponent(DetachmentTransformRules);
+	EquippedWeapon_L->Destroy();
+
+
 }
 
 void APlayerCharacter::SelectButtonPressed()
 {
-	DropWeapon();
+	if (TraceHitItem)
+	{
+		auto TraceHitWeapon = Cast<AWeapon>(TraceHitItem);
+		SwapWeapon(TraceHitWeapon);
+
+	}
 }
 
 void APlayerCharacter::SelectButtonReleased()
 {
 
+}
+
+void APlayerCharacter::SwapWeapon(AWeapon* WeaponToSwap)
+{
+	DropWeapon();
+	EquipWeapon(WeaponToSwap);
+	TraceHitItem = nullptr;
+	TraceHitItemLastFrame = nullptr;
 }
 
 // Called every frame

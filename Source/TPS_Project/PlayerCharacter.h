@@ -91,6 +91,9 @@ protected:
 	void SelectButtonPressed();
 	void SelectButtonReleased();
 
+	// Swaps weapons 
+	void SwapWeapon(AWeapon* WeaponToSwap);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -239,11 +242,17 @@ private:
 
 	// Current Weapon
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	AWeapon* EquippedWeapon;
+	AWeapon* EquippedWeapon_R;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	AWeapon* EquippedWeapon_L;
 
 	// Set default Weapon in Blueprints
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AWeapon> DefaultWeaponClass;
+
+	// Current object hit by the trace
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	AItem* TraceHitItem;
 
 public:
 	// Returns CameraBoom (SpringArmComponent) subobject
