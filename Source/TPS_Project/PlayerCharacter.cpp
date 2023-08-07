@@ -333,7 +333,7 @@ void APlayerCharacter::CalculateCrosshairSpread(float DeltaTime)
 	CrosshairVelocityFactor = FMath::GetMappedRangeValueClamped(WalkSpeedRange, VelocityMultiplierRange, Velocity.Size());
 
 	// If player is in the air, calculate crosshair in air factor
-	//  FMath::FInterpTo takes a target and  interSpeed, this are the magic numbers
+	//  FMath::FInterpTo takes a target and  interSpeed, these are the magic numbers
 	if (GetCharacterMovement()->IsFalling()) 
 	{
 		// Spread the crosshairs slowly while in air
@@ -579,7 +579,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 
 	// Check Over lapped Items, then trace 
 	TraceForItems();
-	
 
 }
 

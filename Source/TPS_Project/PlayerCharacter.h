@@ -22,23 +22,19 @@ protected:
 	// Called for forward and back inputs
 	void MoveForward(float Value);
 
-	// Called for left and right movement
+	// Called for left and right input
 	void MoveRight(float Value);
 
-	// Called viua input to turn at a given rate.
-	//@param rate, this is a normalized rate, 1.0 = 100% of desired turn rate
+	// Turn at a given rate. This is a normalized rate, 1.0 = 100% of desired turn rate
 	void TurnAtRate(float Rate);
 
-	// Called via input to look up/down at a given rate.
-	// @param rate, this is a normalized rate, 1.0 = 100% of desired turn rate
+	// look up/down at a given rate. This is a normalized rate, 1.0 = 100% of desired turn rate
 	void LookUpAtRate(float Rate); 
-
-	
+		
 	// Rotate controller based on mouse X movement
-	// param Value   The input value from mouse movement
+	// Value The input value from mouse movement
 	void Turn(float Value);
 
-	
 	// Rotate controller based on mouse Y movement
 	// param Value   The input value from mouse movement
 	void LookUp(float Value);

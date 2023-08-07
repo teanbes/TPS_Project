@@ -66,7 +66,7 @@ public:
 
 private:
 	// Skeletal Mesh for the item
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* ItemMesh;
 
 	// Line trace collides with box to show HUD widgets
