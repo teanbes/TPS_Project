@@ -6,6 +6,7 @@
 #include "Components/WidgetComponent.h"
 #include "Components/SphereComponent.h"
 #include "PlayerCharacter.h"
+#include "Camera/CameraComponent.h"
 
 // Sets default values
 AItem::AItem(): 
@@ -17,7 +18,10 @@ AItem::AItem():
 	ZCurveTime(0.7f),
 	ItemInterpStartLocation(FVector(0.0f)),
 	CameraTargetLocation(FVector(0.0f)),
-	bInterping(false)
+	bInterping(false),
+	ItemInterpX(0.0f),
+	ItemInterpY(0.0f),
+	InterpInitialYawOffset(0.0f)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -218,13 +222,29 @@ void AItem::ItemInterp(float DeltaTime)
 		const FVector CameraInterpLocation{ Character->GetCameraInterpLocation() };
 
 		// Vector from Item to Camera Interp Location, X and Y are zeroed out
-		const FVector ItemToCamera{ FVector(0.f, 0.f, (CameraInterpLocation - ItemLocation).Z) };
+		const FVector ItemToCamera{ FVector(0.0f, 0.0f, (CameraInterpLocation - ItemLocation).Z) };
 		// Scale factor to multiply with CurveValue
 		const float DeltaZ = ItemToCamera.Size();
+		// Interping Speed
+		const float InterpSpeed = 30.0f;
+		const FVector CurrentLocation{ GetActorLocation() };
+		const float InterpXValue = FMath::FInterpTo(CurrentLocation.X, CameraInterpLocation.X, DeltaTime, InterpSpeed);
+		// Interpolated Y value
+		const float InterpYValue = FMath::FInterpTo(CurrentLocation.Y,	CameraInterpLocation.Y, DeltaTime, InterpSpeed);
+
+		// Set X and Y of ItemLocation to Interped values
+		ItemLocation.X = InterpXValue;
+		ItemLocation.Y = InterpYValue;
 
 		// Adding curve value to the Z component of the Initial Location (scaled by DeltaZ)
 		ItemLocation.Z += CurveValue * DeltaZ;
 		SetActorLocation(ItemLocation, true, nullptr, ETeleportType::TeleportPhysics);
+
+		// Camera rotation this frame
+		const FRotator CameraRotation{ Character->GetFollowCamera()->GetComponentRotation() };
+		// Camera rotation plus inital Yaw Offset
+		FRotator ItemRotation{ 0.0f, CameraRotation.Yaw + InterpInitialYawOffset, 0.0f };
+		SetActorRotation(ItemRotation, ETeleportType::TeleportPhysics);
 
 	}
 
@@ -256,5 +276,14 @@ void AItem::StartItemCurve(APlayerCharacter* Char)
 	SetItemState(EItemState::EIS_EquipInterping);
 	// Start Timer
 	GetWorldTimerManager().SetTimer(ItemInterpTimer, this, &AItem::FinishInterping, ZCurveTime);
+
+	// Calculating yaw offset between camera and interp item to stop Item interp rotation when camera rotates
+	// Get initial Yaw of the Camera
+	const FRotator CameraRotation{ Character->GetFollowCamera()->GetComponentRotation() };
+	// Get initial Yaw of the Item
+	const FRotator ItemRotation{0.0, CameraRotation.Yaw + InterpInitialYawOffset, 0.0f };
+	// Initial Yaw offset between Camera and interp item
+	SetActorRotation(ItemRotation, ETeleportType::TeleportPhysics);
+	
 }
 

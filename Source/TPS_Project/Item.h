@@ -133,6 +133,13 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	class APlayerCharacter* Character;
 
+	// X and Y for the Item while interping in the EquipInterping state
+	float ItemInterpX;
+	float ItemInterpY;
+
+	// Initial Yaw offset between the camera and the interping item 
+	float InterpInitialYawOffset;
+
 public:
 	// getter for PickupWidget
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupWidget; }
