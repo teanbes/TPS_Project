@@ -57,7 +57,10 @@ APlayerCharacter::APlayerCharacter() :
 	TraceLenght(50'000.0f),
 	TraceMultiplier(1.25f),
 	bShouldTraceForItems(false),
-	OverlappedItemCount(0)
+	OverlappedItemCount(0),
+	// Camera interpolation location variables
+	CameraInterpDistance(250.0f),
+	CameraInterpElevation(65.0f)
 
 	
 
@@ -544,9 +547,7 @@ void APlayerCharacter::SelectButtonPressed()
 {
 	if (TraceHitItem)
 	{
-		auto TraceHitWeapon = Cast<AWeapon>(TraceHitItem);
-		SwapWeapon(TraceHitWeapon);
-
+		TraceHitItem->StartItemCurve(this);
 	}
 }
 
@@ -625,5 +626,24 @@ void APlayerCharacter::IncrementOverlappedItemCount(int8 Amount)
 	{
 		OverlappedItemCount += Amount;
 		bShouldTraceForItems = true;
+	}
+}
+
+FVector APlayerCharacter::GetCameraInterpLocation()
+{
+	const FVector CameraWorldLocation{ FollowCamera->GetComponentLocation() };
+	const FVector CameraForward{ FollowCamera->GetForwardVector() };
+
+	// LocationToInterpTo = CameraWorldLocation + ForwardLocation * A + UpVector * B
+	return CameraWorldLocation + CameraForward * CameraInterpDistance + FVector(0.0f, 0.0f, CameraInterpElevation);
+}
+
+// 
+void APlayerCharacter::GetPickupItem(AItem* Item)
+{
+	auto Weapon = Cast<AWeapon>(Item);
+	if (Weapon)
+	{
+		SwapWeapon(Weapon);
 	}
 }
