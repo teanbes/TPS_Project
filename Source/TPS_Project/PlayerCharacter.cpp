@@ -60,8 +60,10 @@ APlayerCharacter::APlayerCharacter() :
 	OverlappedItemCount(0),
 	// Camera interpolation location variables
 	CameraInterpDistance(250.0f),
-	CameraInterpElevation(65.0f)
-
+	CameraInterpElevation(65.0f),
+	// Starting ammo amounts
+	Starting9mmAmmo(85),
+	StartingARAmmo(120)
 	
 
 {
@@ -107,6 +109,8 @@ void APlayerCharacter::BeginPlay()
 	}
 	// Spawn default weapons and attach and equip
 	EquipWeapon(SpawnDefaultWeapon());
+
+	InitializeAmmoMap();
 }
 
 void APlayerCharacter::MoveForward(float Value)
@@ -562,6 +566,12 @@ void APlayerCharacter::SwapWeapon(AWeapon* WeaponToSwap)
 	EquipWeapon(WeaponToSwap);
 	TraceHitItem = nullptr;
 	TraceHitItemLastFrame = nullptr;
+}
+
+void APlayerCharacter::InitializeAmmoMap()
+{
+	AmmoMap.Add(EAmmoType::EAT_9mm, Starting9mmAmmo);
+	AmmoMap.Add(EAmmoType::EAT_AR, StartingARAmmo);
 }
 
 // Called every frame
