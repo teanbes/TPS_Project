@@ -119,6 +119,11 @@ protected:
 	void SpawnBullet();
 	void PlayGunfireAnim();
 
+	// R key or gamepadFaceLeft button to Reload
+	void ReloadButtonPressed();
+
+	// Reload weapon
+	void ReloadWeapon();
 
 
 
@@ -305,6 +310,13 @@ private:
 	// Combat State, fire or reload if Unoccupied 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	ECombatState CombatState;
+
+	// Reload Anim montage
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* ReloadMontage;
+
+	UFUNCTION(BlueprintCallable)
+	void FinishReloading();
 
 public:
 	// Returns CameraBoom (SpringArmComponent) subobject

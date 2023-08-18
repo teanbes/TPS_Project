@@ -380,7 +380,7 @@ void APlayerCharacter::AutoFireReset()
 	else
 	{
 		// Reload Weapon
-		//ReloadWeapon();
+		ReloadWeapon();
 	}
 }
 
@@ -613,6 +613,36 @@ void APlayerCharacter::PlayGunfireAnim()
 	StartCrosshairBulletFire();
 }
 
+void APlayerCharacter::ReloadButtonPressed()
+{
+	ReloadWeapon();
+}
+
+void APlayerCharacter::ReloadWeapon()
+{
+	if (CombatState != ECombatState::ECState_Unoccupied) return;
+	if (EquippedWeapon_R == nullptr) return;
+
+	// Check if we have the right ammo type
+	// 
+	if (true)
+	{
+		// addd function
+		// create Enum for weapon type to handle each anim
+
+		FName MontageSection(TEXT("Reload Pistols")); // temp for testing
+
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();// Anim Instance
+		if (AnimInstance && ReloadMontage)
+		{
+			AnimInstance->Montage_Play(ReloadMontage);
+			//AnimInstance->Montage_JumpToSection(EquippedWeapon_R->GetReloadMontageSection());
+		}
+	}
+
+
+}
+
 
 
 // Called every frame
@@ -659,6 +689,15 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::SelectButtonPressed);
 	PlayerInputComponent->BindAction("Interact", IE_Released, this, &APlayerCharacter::SelectButtonReleased);
 
+	PlayerInputComponent->BindAction("ReloadButton", IE_Pressed, this, &APlayerCharacter::ReloadButtonPressed);
+
+}
+
+void APlayerCharacter::FinishReloading()
+{
+	// Update States
+
+	CombatState = ECombatState::ECState_Unoccupied;
 }
 
 float APlayerCharacter::GetCrosshairSpreadMultiplier() const
