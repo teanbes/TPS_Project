@@ -6,7 +6,12 @@
 AWeapon::AWeapon() :
 	ThrowWeaponTime(0.7f),
 	bFalling(false),
-	Ammo(0)
+	Ammo(30),
+	MagazineCapacity(30),
+	WeaponType(EWeaponType::EWType_Pistols),
+	AmmoType(EAmmoType::EAT_9mm),
+	ReloadMontageSection(FName(TEXT("Reload Pistols")))
+
 
 {
 	PrimaryActorTick.bCanEverTick = true; // to ensure tick function is called
@@ -54,6 +59,12 @@ void AWeapon::DecreaseAmmo()
 	{
 		--Ammo;
 	}
+}
+
+void AWeapon::ReloadAmmo(int32 Amount)
+{
+	checkf(Ammo + Amount <= MagazineCapacity, TEXT("You reach the magazine max capacity!"));
+	Ammo += Amount;
 }
 
 void AWeapon::StopFalling()

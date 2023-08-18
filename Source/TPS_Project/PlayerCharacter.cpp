@@ -624,23 +624,34 @@ void APlayerCharacter::ReloadWeapon()
 	if (EquippedWeapon_R == nullptr) return;
 
 	// Check if we have the right ammo type
-	// 
-	if (true)
+	if (AmmoTypeCarried())
 	{
-		// addd function
-		// create Enum for weapon type to handle each anim
-
-		FName MontageSection(TEXT("Reload Pistols")); // temp for testing
+		CombatState = ECombatState::ECState_Reloading; //  Reloading state
 
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();// Anim Instance
 		if (AnimInstance && ReloadMontage)
 		{
 			AnimInstance->Montage_Play(ReloadMontage);
-			//AnimInstance->Montage_JumpToSection(EquippedWeapon_R->GetReloadMontageSection());
+			AnimInstance->Montage_JumpToSection(EquippedWeapon_R->GetReloadMontageSection());
 		}
 	}
 
 
+}
+
+bool APlayerCharacter::AmmoTypeCarried()
+{
+	if (EquippedWeapon_R == nullptr) return false;
+
+	auto AmmoType = EquippedWeapon_R->GetAmmoType();
+
+	// Check if map containts type
+	if (AmmoMap.Contains(AmmoType))
+	{
+		return AmmoMap[AmmoType] > 0;
+	}
+
+	return false;
 }
 
 
@@ -696,8 +707,37 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 void APlayerCharacter::FinishReloading()
 {
 	// Update States
-
 	CombatState = ECombatState::ECState_Unoccupied;
+
+	if (EquippedWeapon_R == nullptr) return;
+
+	const auto AmmoType{ EquippedWeapon_R->GetAmmoType() };
+
+	// Update ammo map
+	if (AmmoMap.Contains(AmmoType))
+	{
+		// Ammo Amount carried per weapon type
+		int32 CarriedAmmo = AmmoMap[AmmoType];
+
+		// Space left in the magazine of EquippedWeapon
+		const int32 MagEmptySpace = EquippedWeapon_R->GetMagazineCapacity() - EquippedWeapon_R->GetAmmo();
+
+		if (MagEmptySpace > CarriedAmmo)
+		{
+			// Reload magazine with rest of ammo carried
+			EquippedWeapon_R->ReloadAmmo(CarriedAmmo);
+			CarriedAmmo = 0;
+			AmmoMap.Add(AmmoType, CarriedAmmo); // update map
+		}
+		else
+		{
+			// fill the magazine
+			EquippedWeapon_R->ReloadAmmo(MagEmptySpace);
+			CarriedAmmo -= MagEmptySpace;
+			AmmoMap.Add(AmmoType, CarriedAmmo); // update map
+		}
+
+	}
 }
 
 float APlayerCharacter::GetCrosshairSpreadMultiplier() const
