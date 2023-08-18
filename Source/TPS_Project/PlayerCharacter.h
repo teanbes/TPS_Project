@@ -14,6 +14,16 @@ enum class EAmmoType : uint8
 	EAT_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
+UENUM(BlueprintType)
+enum class ECombatState : uint8
+{
+	ECState_Unoccupied UMETA(DisplayName = "Unoccupied"),
+	ECState_FireTimerInProgress UMETA(DisplayName = "FireTimerInProgress"),
+	ECSTate_Reloading UMETA(DisplayName = "Reloading"),
+
+	ECSState_MAX UMETA(DisplayName = "DefaultMAX")
+};
+
 UCLASS()
 class TPS_PROJECT_API APlayerCharacter : public ACharacter
 {
@@ -103,6 +113,14 @@ protected:
 
 	// Check if weapon has ammo
 	bool WeaponHasAmmo();
+
+	// FireWeapon functions
+	void PlayFireSound();
+	void SpawnBullet();
+	void PlayGunfireAnim();
+
+
+
 
 public:	
 	// Called every frame
@@ -283,6 +301,10 @@ private:
 	// Default AR ammo amount
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
 	int32 StartingARAmmo;
+
+	// Combat State, fire or reload if Unoccupied 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	ECombatState CombatState;
 
 public:
 	// Returns CameraBoom (SpringArmComponent) subobject
