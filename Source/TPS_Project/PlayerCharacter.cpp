@@ -182,7 +182,7 @@ void APlayerCharacter::LookUp(float Value)
 
 void APlayerCharacter::FireWeapon()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Firing Weapon"));
+	if (EquippedWeapon_R == nullptr && EquippedWeapon_L == nullptr) return;
 	if (FireSound)
 	{
 		UGameplayStatics::PlaySound2D(this, FireSound);
@@ -241,6 +241,12 @@ void APlayerCharacter::FireWeapon()
 	//Start bullet fire timer for crosshairs
 	StartCrosshairBulletFire();
 
+	if (EquippedWeapon_L && EquippedWeapon_R)
+	{
+		// Decrease ammo count
+		EquippedWeapon_R->DecreaseAmmo();
+		//EquippedWeapon_L->DecreaseAmmo(); one weapon for testing
+	}
 }
 
 bool APlayerCharacter::GetBeamEndLocations(const FVector& MuzzleSocketLocation_L, FVector& OutBeamLocation_L, const FVector& MuzzleSocketLocation_R, FVector& OutBeamLocation_R)
@@ -391,8 +397,12 @@ void APlayerCharacter::FinishCrosshairBulletFire()
 
 void APlayerCharacter::FireButtonPressed()
 {
-	bFireButtonPressed = true;
-	StartFireTimer();
+	if (WeaponHasAmmo())
+	{
+		bFireButtonPressed = true;
+		StartFireTimer();
+	}
+
 }
 
 void APlayerCharacter::FireButtonReleased()
@@ -413,11 +423,14 @@ void APlayerCharacter::StartFireTimer()
 
 void APlayerCharacter::AutoFireReset()
 {
-	bShouldFire = true;
-	// if we still pressing fire StartFireTimer() again
-	if (bFireButtonPressed)
+	if (WeaponHasAmmo())
 	{
-		StartFireTimer();
+		bShouldFire = true;
+		// if we still pressing fire StartFireTimer() again
+		if (bFireButtonPressed)
+		{
+			StartFireTimer();
+		}
 	}
 }
 
@@ -572,6 +585,13 @@ void APlayerCharacter::InitializeAmmoMap()
 {
 	AmmoMap.Add(EAmmoType::EAT_9mm, Starting9mmAmmo);
 	AmmoMap.Add(EAmmoType::EAT_AR, StartingARAmmo);
+}
+
+bool APlayerCharacter::WeaponHasAmmo()
+{
+	if (EquippedWeapon_R == nullptr && EquippedWeapon_L == nullptr) return false;
+
+	return EquippedWeapon_R->GetAmmo() > 0; // just one weapon for testing (&& EquippedWeapon_L->GetAmmo() > 0);
 }
 
 // Called every frame
