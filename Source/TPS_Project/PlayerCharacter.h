@@ -123,6 +123,13 @@ protected:
 	// Checks to see if we have ammo of the EquippedWeapon's ammo type
 	bool AmmoTypeCarried();
 
+	// Called from Animation Blueprint with Grab Clip notify
+	UFUNCTION(BlueprintCallable)
+	void GrabClip();
+
+	// Called from Animation Blueprint with Release Clip notify
+	UFUNCTION(BlueprintCallable)
+	void ReleaseClip();
 
 
 public:	
@@ -315,6 +322,14 @@ private:
 
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
+
+	// Transform of the clip when we first grab the clip when reloading
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	FTransform ClipTransform;
+
+	// Scene component to attach to the character hand when reloading
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* HandSceneComponent;
 
 public:
 	// Returns CameraBoom (SpringArmComponent) subobject

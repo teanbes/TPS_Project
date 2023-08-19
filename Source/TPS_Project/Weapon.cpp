@@ -10,7 +10,8 @@ AWeapon::AWeapon() :
 	MagazineCapacity(30),
 	WeaponType(EWeaponType::EWType_Pistols),
 	AmmoType(EAmmoType::EAT_9mm),
-	ReloadMontageSection(FName(TEXT("Reload Pistols")))
+	ReloadMontageSection(FName(TEXT("Reload Pistols"))),
+	ClipBoneName(TEXT("Pistol_clip"))
 
 
 {

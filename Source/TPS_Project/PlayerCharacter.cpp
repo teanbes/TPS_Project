@@ -94,6 +94,9 @@ APlayerCharacter::APlayerCharacter() :
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
 
+	// Create Hand Scene Component 
+	HandSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("HandSceneComp"));
+
 }
 
 // Called when the game starts or when spawned
@@ -652,6 +655,30 @@ bool APlayerCharacter::AmmoTypeCarried()
 	}
 
 	return false;
+}
+
+// to use in weapons that have clips to add realism to the animation ****** NOt USED YET***
+void APlayerCharacter::GrabClip()
+{
+	if (EquippedWeapon_R == nullptr) return;
+	if (HandSceneComponent == nullptr) return;
+	
+	// Index for the clip bone on the Equipped Weapon
+	int32 ClipBoneIndex{ EquippedWeapon_R->GetItemMesh()->GetBoneIndex(EquippedWeapon_R->GetClipBoneName()) };
+
+	// Store the clip transform
+	ClipTransform = EquippedWeapon_R->GetItemMesh()->GetBoneTransform(ClipBoneIndex);
+
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepRelative, true); // to atach the clip to the hand and keep the relative rotation
+	HandSceneComponent->AttachToComponent(GetMesh(), AttachmentRules, FName(TEXT("Hand_L"))); // attaching the clkip to the Left hand
+	HandSceneComponent->SetWorldTransform(ClipTransform); 
+
+	EquippedWeapon_R->SetMovingClip(true);
+}
+
+void APlayerCharacter::ReleaseClip()
+{
+
 }
 
 
