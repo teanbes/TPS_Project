@@ -15,7 +15,7 @@
 #include "Weapon.h"
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
-
+#include "Ammo.h"
 
 
 // Sets default values
@@ -518,10 +518,6 @@ void APlayerCharacter::SelectButtonPressed()
 	if (TraceHitItem)
 	{
 		TraceHitItem->StartItemCurve(this);
-		if (TraceHitItem->GetPickupSound())
-		{
-			UGameplayStatics::PlaySound2D(this, TraceHitItem->GetPickupSound());
-		}
 	}
 }
 
@@ -685,6 +681,32 @@ void APlayerCharacter::ReleaseClip()
 
 }
 
+void APlayerCharacter::PickupAmmo(AAmmo* Ammo)
+{
+	// check if AmmoMap has the picking ammo type
+	if (AmmoMap.Find(Ammo->GetAmmoType()))
+	{
+		// Get ammo amount in the AmmoMap for this type
+		int32 AmmoCount{ AmmoMap[Ammo->GetAmmoType()] };
+		AmmoCount += Ammo->GetItemCount();
+
+		// Set ammo amount in the map for this type
+		AmmoMap[Ammo->GetAmmoType()] = AmmoCount;
+	}
+
+
+	if (EquippedWeapon_R->GetAmmoType() == Ammo->GetAmmoType())
+	{
+		// If gun is empty
+		if (EquippedWeapon_R->GetAmmo() == 0)
+		{
+			ReloadWeapon();
+		}
+	}
+
+	Ammo->Destroy();
+}
+
 
 
 // Called every frame
@@ -811,5 +833,11 @@ void APlayerCharacter::GetPickupItem(AItem* Item)
 	if (Weapon)
 	{
 		SwapWeapon(Weapon);
+	}
+
+	auto Ammo = Cast<AAmmo>(Item);
+	if (Ammo)
+	{
+		PickupAmmo(Ammo);
 	}
 }

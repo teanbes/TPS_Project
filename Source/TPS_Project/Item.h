@@ -58,7 +58,7 @@ protected:
 	void SetActiveStars();
 
 	// Item's properties per state
-	void SetItemProperties(EItemState State);
+	virtual void SetItemProperties(EItemState State);
 
 	// Called when ItemInterpTimer is finished
 	void FinishInterping();
@@ -152,6 +152,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	USoundCue* EquipSound;
 
+	// Weapon texture icon
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ammo, meta = (AllowPrivateAccess = "true"))
+	UTexture2D* WeaponIconTexture;
+
 public: 
 	// getter for PickupWidget
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupWidget; }
@@ -166,6 +170,8 @@ public:
 
 	FORCEINLINE USoundCue* GetPickupSound() const { return PickupSound; }
 	FORCEINLINE USoundCue* GetEquipSound() const { return EquipSound; }
+
+	FORCEINLINE int32 GetItemCount() const { return ItemCount; }
 
 	// Called from the APlayerCharacter class
 	void StartItemCurve(APlayerCharacter* Char);

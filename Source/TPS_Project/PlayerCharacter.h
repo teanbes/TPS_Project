@@ -131,6 +131,7 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void ReleaseClip();
 
+	void PickupAmmo(class AAmmo* Ammo);
 
 public:	
 	// Called every frame
