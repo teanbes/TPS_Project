@@ -76,3 +76,5 @@ DerivedDataCache/*
 # Environment
 Content/Bazaar_Meshingun/**
 
+# Enemy Assets
+Content/ParagonGrux/**
