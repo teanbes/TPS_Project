@@ -69,7 +69,7 @@ protected:
 	void FireWeapon();
 
 	// Calculation for shotting stating and end location
-	bool GetBeamEndLocations(const FVector& MuzzleSocketLocation_L, FVector& OutBeamLocation_L, const FVector& MuzzleSocketLocation_R, FVector& OutBeamLocation_R);
+	bool GetBeamEndLocations(const FVector& MuzzleSocketLocation_L, FHitResult& OutHitResult_L, const FVector& MuzzleSocketLocation_R, FHitResult& OutHitResult_R);
 
 	// Set bAiming to true or false with button press
 	void AimingButtonPressed();

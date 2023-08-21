@@ -4,6 +4,7 @@
 #include "PlayerCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
@@ -16,6 +17,8 @@
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
 #include "Ammo.h"
+#include "BulletHitInterface.h"
+#include "Enemy.h"
 
 
 // Sets default values
@@ -225,8 +228,10 @@ void APlayerCharacter::FireWeapon()
 	}
 }
 
-bool APlayerCharacter::GetBeamEndLocations(const FVector& MuzzleSocketLocation_L, FVector& OutBeamLocation_L, const FVector& MuzzleSocketLocation_R, FVector& OutBeamLocation_R)
+bool APlayerCharacter::GetBeamEndLocations(const FVector& MuzzleSocketLocation_L, FHitResult& OutHitResult_L, const FVector& MuzzleSocketLocation_R, FHitResult& OutHitResult_R)
 {
+	FVector OutBeamLocation_L;
+	FVector OutBeamLocation_R;
 	// Check for crosshair trace hit left gun
 	FHitResult CrosshairHitResult_L;
 	bool bCrosshairHit_L = TraceUnderCrooshairs(CrosshairHitResult_L, OutBeamLocation_L);
@@ -247,26 +252,25 @@ bool APlayerCharacter::GetBeamEndLocations(const FVector& MuzzleSocketLocation_L
 	}
 
 	//Perform a second trace, from the gun barrel to add precision when there is another object between the barrel line and crosshair
-	FHitResult WeaponTraceHit_L; // Ray casting for firing left weapon
+	
 	const FVector WeaponTraceStart_L{ MuzzleSocketLocation_L };
 	const FVector StartToEnd_L{ OutBeamLocation_L - MuzzleSocketLocation_L };
 	const FVector WeaponTraceEnd_L{ MuzzleSocketLocation_L + StartToEnd_L * TraceMultiplier};
 
-	FHitResult WeaponTraceHit_R; // Ray casting for firing right weapon
 	const FVector WeaponTraceStart_R{ MuzzleSocketLocation_R };
 	const FVector StartToEnd_R{ OutBeamLocation_R - MuzzleSocketLocation_R };
 	const FVector WeaponTraceEnd_R{ MuzzleSocketLocation_R + StartToEnd_R * TraceMultiplier };
 
-	GetWorld()->LineTraceSingleByChannel(WeaponTraceHit_L, WeaponTraceStart_L, WeaponTraceEnd_L, ECollisionChannel::ECC_Visibility);
-	GetWorld()->LineTraceSingleByChannel(WeaponTraceHit_R, WeaponTraceStart_R, WeaponTraceEnd_R, ECollisionChannel::ECC_Visibility);
+	GetWorld()->LineTraceSingleByChannel(OutHitResult_L, WeaponTraceStart_L, WeaponTraceEnd_L, ECollisionChannel::ECC_Visibility);
+	GetWorld()->LineTraceSingleByChannel(OutHitResult_R, WeaponTraceStart_R, WeaponTraceEnd_R, ECollisionChannel::ECC_Visibility);
 
-	if (WeaponTraceHit_L.bBlockingHit && WeaponTraceHit_R.bBlockingHit) // if there is an object between barrel and BeamEndPoints
+	if (!OutHitResult_L.bBlockingHit && !OutHitResult_R.bBlockingHit) // if there is an object between barrel and BeamEndPoints
 	{
-		OutBeamLocation_L = WeaponTraceHit_L.Location;
-		OutBeamLocation_R = WeaponTraceHit_R.Location;
-		return true;
+		OutHitResult_L.Location = OutBeamLocation_L;
+		OutHitResult_R.Location = OutBeamLocation_R;
+		return false;
 	}
-	return false;
+	return true;
 	
 }
 
@@ -601,27 +605,44 @@ void APlayerCharacter::SpawnBullet()
 		}
 
 		// Funcion to get info for spaining impacts and FX
-		FVector BeamEnd_L;
-		FVector BeamEnd_R;
-		bool bBeamsEnd = GetBeamEndLocations(SocketTransform_L.GetLocation(), BeamEnd_L, SocketTransform_R.GetLocation(), BeamEnd_R);
+		FHitResult BeamHitResult_L;
+		FHitResult BeamHitResult_R;
+
+		bool bBeamsEnd = GetBeamEndLocations(SocketTransform_L.GetLocation(), BeamHitResult_L, SocketTransform_R.GetLocation(), BeamHitResult_R);
 
 		if (bBeamsEnd)
 		{
-			// spawn impact particles after updating BeamEndPoints
-			if (ImpactParticles)
+			// Does hit Actor implement BulletHitInterface?
+			if (BeamHitResult_L.GetActor() && BeamHitResult_R.GetActor())
 			{
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, BeamEnd_L);
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, BeamEnd_R);
-			}
+				IBulletHitInterface* BulletHitInterface_L = Cast<IBulletHitInterface>(BeamHitResult_L.GetActor());
+				IBulletHitInterface* BulletHitInterface_R = Cast<IBulletHitInterface>(BeamHitResult_R.GetActor());
 
-			if (BeamParticles)
-			{
-				UParticleSystemComponent* Beam_L = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticles, SocketTransform_L);
-				UParticleSystemComponent* Beam_R = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticles, SocketTransform_R);
-				if (Beam_L && Beam_R)
+				if (BulletHitInterface_L && BulletHitInterface_R)
 				{
-					Beam_L->SetVectorParameter(FName("Target"), BeamEnd_L);
-					Beam_R->SetVectorParameter(FName("Target"), BeamEnd_R);
+					BulletHitInterface_L->BulletHit_Implementation(BeamHitResult_L);
+					BulletHitInterface_R->BulletHit_Implementation(BeamHitResult_R);
+				}
+				else
+				{
+					// spawn default impact particles after updating BeamEndPoints
+					if (ImpactParticles)
+					{
+						UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, BeamHitResult_L.Location);
+						UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, BeamHitResult_R.Location);
+					}
+
+				}
+
+				if (BeamParticles)
+				{
+					UParticleSystemComponent* Beam_L = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticles, SocketTransform_L);
+					UParticleSystemComponent* Beam_R = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticles, SocketTransform_R);
+					if (Beam_L && Beam_R)
+					{
+						Beam_L->SetVectorParameter(FName("Target"), BeamHitResult_L.Location);
+						Beam_R->SetVectorParameter(FName("Target"), BeamHitResult_R.Location);
+					}
 				}
 			}
 		}
