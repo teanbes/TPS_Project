@@ -623,28 +623,37 @@ void APlayerCharacter::SpawnBullet()
 					BulletHitInterface_L->BulletHit_Implementation(BeamHitResult_L);
 					BulletHitInterface_R->BulletHit_Implementation(BeamHitResult_R);
 				}
-				else
-				{
-					// spawn default impact particles after updating BeamEndPoints
-					if (ImpactParticles)
-					{
-						UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, BeamHitResult_L.Location);
-						UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, BeamHitResult_R.Location);
-					}
 
-				}
-
-				if (BeamParticles)
+				AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult_R.GetActor());
+				if (HitEnemy)
 				{
-					UParticleSystemComponent* Beam_L = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticles, SocketTransform_L);
-					UParticleSystemComponent* Beam_R = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticles, SocketTransform_R);
-					if (Beam_L && Beam_R)
-					{
-						Beam_L->SetVectorParameter(FName("Target"), BeamHitResult_L.Location);
-						Beam_R->SetVectorParameter(FName("Target"), BeamHitResult_R.Location);
-					}
+					// shot damage
+					UGameplayStatics::ApplyDamage(BeamHitResult_R.GetActor(), EquippedWeapon_R->GetDamage(), GetController(), this, UDamageType::StaticClass());
+	
 				}
 			}
+			else
+			{
+				// spawn default impact particles after updating BeamEndPoints
+				if (ImpactParticles)
+				{
+					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, BeamHitResult_L.Location);
+					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, BeamHitResult_R.Location);
+				}
+
+			}
+
+			if (BeamParticles)
+			{
+				UParticleSystemComponent* Beam_L = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticles, SocketTransform_L);
+				UParticleSystemComponent* Beam_R = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticles, SocketTransform_R);
+				if (Beam_L && Beam_R)
+				{
+					Beam_L->SetVectorParameter(FName("Target"), BeamHitResult_L.Location);
+					Beam_R->SetVectorParameter(FName("Target"), BeamHitResult_R.Location);
+				}
+			}
+			
 		}
 	}
 }
