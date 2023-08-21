@@ -31,6 +31,16 @@ enum class EItemState : uint8
 	EIS_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
+UENUM(BlueprintType)
+enum class EItemType : uint8
+{
+	EIType_Ammo UMETA(DisplayName = "Ammo"),
+	EIType_Weapon UMETA(DisplayName = "Weapon"),
+
+	EIType_MAX UMETA(DisplayName = "DefaultMAX")
+};
+
+
 UCLASS()
 class TPS_PROJECT_API AItem : public AActor
 {
@@ -65,6 +75,9 @@ protected:
 
 	// Handles item interpolation when in the EquipInterping state
 	void ItemInterp(float DeltaTime);
+
+	// Get interp location based on the item type
+	FVector GetInterpLocation();
 
 public:	
 	// Called every frame
@@ -155,6 +168,14 @@ private:
 	// Weapon texture icon
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ammo, meta = (AllowPrivateAccess = "true"))
 	UTexture2D* WeaponIconTexture;
+
+	// Enum for this type of item 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	EItemType ItemType;
+
+	// Index of the interp location this item is interping to
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	int32 InterpLocIndex;
 
 public: 
 	// getter for PickupWidget

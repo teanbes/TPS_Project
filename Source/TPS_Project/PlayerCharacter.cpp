@@ -97,6 +97,28 @@ APlayerCharacter::APlayerCharacter() :
 	// Create Hand Scene Component 
 	HandSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("HandSceneComp"));
 
+	// Create Interp Components
+	WeaponInterpComp = CreateDefaultSubobject<USceneComponent>(TEXT("Weapon Interpolation Component"));
+	WeaponInterpComp->SetupAttachment(GetFollowCamera());
+
+	InterpComponent1 = CreateDefaultSubobject<USceneComponent>(TEXT("Interpolation Component 1"));
+	InterpComponent1->SetupAttachment(GetFollowCamera());
+
+	InterpComponent2 = CreateDefaultSubobject<USceneComponent>(TEXT("Interpolation Component 2"));
+	InterpComponent2->SetupAttachment(GetFollowCamera());
+
+	InterpComponent3 = CreateDefaultSubobject<USceneComponent>(TEXT("Interpolation Component 3"));
+	InterpComponent3->SetupAttachment(GetFollowCamera());
+
+	InterpComponent4 = CreateDefaultSubobject<USceneComponent>(TEXT("Interpolation Component 4"));
+	InterpComponent4->SetupAttachment(GetFollowCamera());
+
+	InterpComponent5 = CreateDefaultSubobject<USceneComponent>(TEXT("Interpolation Component 5"));
+	InterpComponent5->SetupAttachment(GetFollowCamera());
+
+	InterpComponent6 = CreateDefaultSubobject<USceneComponent>(TEXT("Interpolation Component 6"));
+	InterpComponent6->SetupAttachment(GetFollowCamera());
+
 }
 
 // Called when the game starts or when spawned
@@ -114,6 +136,9 @@ void APlayerCharacter::BeginPlay()
 	EquipWeapon(SpawnDefaultWeapon());
 
 	InitializeAmmoMap();
+
+	// Create FInterpLocation structs for each interp location and add to array
+	InitializeInterpLocations();
 }
 
 void APlayerCharacter::MoveForward(float Value)
@@ -707,6 +732,56 @@ void APlayerCharacter::PickupAmmo(AAmmo* Ammo)
 	Ammo->Destroy();
 }
 
+void APlayerCharacter::InitializeInterpLocations()
+{
+	FInterpLocation WeaponLocation{ WeaponInterpComp, 0 };
+	InterpLocations.Add(WeaponLocation);
+
+	FInterpLocation InterpLoc1{ InterpComponent1, 0 };
+	InterpLocations.Add(InterpLoc1);
+
+	FInterpLocation InterpLoc2{ InterpComponent2, 0 };
+	InterpLocations.Add(InterpLoc2);
+
+	FInterpLocation InterpLoc3{ InterpComponent3, 0 };
+	InterpLocations.Add(InterpLoc3);
+
+	FInterpLocation InterpLoc4{ InterpComponent4, 0 };
+	InterpLocations.Add(InterpLoc4);
+	 
+	FInterpLocation InterpLoc5{ InterpComponent5, 0 };
+	InterpLocations.Add(InterpLoc5);
+
+	FInterpLocation InterpLoc6{ InterpComponent6, 0 };
+	InterpLocations.Add(InterpLoc6);
+}
+
+int32 APlayerCharacter::GetInterpLocationindex()
+{
+	int32 LowestIndex = 1;
+	int32 LowestCount = INT_MAX;
+	for (int32 i = 1; i < InterpLocations.Num(); i++)
+	{
+		if (InterpLocations[i].ItemCount < LowestCount)
+		{
+			LowestIndex = i;
+			LowestCount = InterpLocations[i].ItemCount;
+		}
+	}
+
+	return LowestIndex;
+}
+
+void APlayerCharacter::IncrementInterpLocItemCount(int32 Index, int32 Amount)
+{
+	if (Amount < -1 || Amount > 1) return;
+
+	if (InterpLocations.Num() >= Index)
+	{
+		InterpLocations[Index].ItemCount += Amount;
+	}
+}
+
 
 
 // Called every frame
@@ -812,6 +887,7 @@ void APlayerCharacter::IncrementOverlappedItemCount(int8 Amount)
 	}
 }
 
+/* Item has getInterpLocation
 FVector APlayerCharacter::GetCameraInterpLocation()
 {
 	const FVector CameraWorldLocation{ FollowCamera->GetComponentLocation() };
@@ -820,6 +896,7 @@ FVector APlayerCharacter::GetCameraInterpLocation()
 	// LocationToInterpTo = CameraWorldLocation + ForwardLocation * A + UpVector * B
 	return CameraWorldLocation + CameraForward * CameraInterpDistance + FVector(0.0f, 0.0f, CameraInterpElevation);
 }
+*/
 
 // 
 void APlayerCharacter::GetPickupItem(AItem* Item)
@@ -840,4 +917,13 @@ void APlayerCharacter::GetPickupItem(AItem* Item)
 	{
 		PickupAmmo(Ammo);
 	}
+}
+
+FInterpLocation APlayerCharacter::GetInterpLocation(int32 Index)
+{
+	if (Index <= InterpLocations.Num())
+	{
+		return InterpLocations[Index];
+	}
+	return FInterpLocation();
 }
