@@ -20,6 +20,19 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintNativeEvent)
+	void ShowHealthBar();
+	void ShowHealthBar_Implementation();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void HideHealthBar();
+
+	void Die();
+
+	void PlayHitMontage(FName Section, float PlayRate = 1.0f);
+
+	void ResetHitReactTimer();
+
 private:
 	// Particles to spawn when hit by bullets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
@@ -37,6 +50,30 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float MaxHealth;
 
+	// Head bone name
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	FString HeadBone;
+
+	// Time to display health bar after damage
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	float HealthBarDisplayTime;
+
+	FTimerHandle HealthBarTimer;
+
+	// Montage containing Hit and Death animations
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* HitMontage;
+
+	FTimerHandle HitReactTimer;
+
+	bool bCanHitReact;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	float HitReactTimeMin;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	float HitReactTimeMax;
+
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -47,4 +84,6 @@ public:
 	virtual void BulletHit_Implementation(FHitResult HitResult) override;
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	FORCEINLINE FString GetHeadBone() const { return HeadBone; }
 };

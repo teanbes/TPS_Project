@@ -627,9 +627,16 @@ void APlayerCharacter::SpawnBullet()
 				AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult_R.GetActor());
 				if (HitEnemy)
 				{
-					// shot damage
-					UGameplayStatics::ApplyDamage(BeamHitResult_R.GetActor(), EquippedWeapon_R->GetDamage(), GetController(), this, UDamageType::StaticClass());
-	
+					if (BeamHitResult_R.BoneName.ToString() == HitEnemy->GetHeadBone())
+					{
+						// Head shot
+						UGameplayStatics::ApplyDamage(BeamHitResult_R.GetActor(), EquippedWeapon_R->GetHeadShotDamage(), GetController(), this, UDamageType::StaticClass());
+					}
+					else
+					{
+						// shot damage
+						UGameplayStatics::ApplyDamage(BeamHitResult_R.GetActor(), EquippedWeapon_R->GetDamage(), GetController(), this, UDamageType::StaticClass());
+					}
 				}
 			}
 			else
