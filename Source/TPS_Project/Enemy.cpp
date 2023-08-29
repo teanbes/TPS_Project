@@ -24,6 +24,7 @@ AEnemy::AEnemy() :
 void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+	bIsDead = false;
 
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 		
@@ -37,7 +38,9 @@ void AEnemy::ShowHealthBar_Implementation()
 
 void AEnemy::Die()
 {
+	bIsDead = true;
 	HideHealthBar();
+	Destroy();
 }
 
 void AEnemy::PlayHitMontage(FName Section, float PlayRate)
