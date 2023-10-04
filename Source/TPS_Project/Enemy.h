@@ -33,6 +33,10 @@ protected:
 
 	void ResetHitReactTimer();
 
+	// Called when other object overlaps with the sphere component
+	UFUNCTION()
+	void AgroSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
 private:
 	// Particles to spawn when hit by bullets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
@@ -88,8 +92,12 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Behavior Tree", meta = (AllowPrivateAccess = "true", MakeEditWidget = "true"))
 	FVector PatrolPoint2;
 
-	// To get Enemy Controller
+	// Enemy Controller Reference
 	class AEnemyController* EnemyController;
+
+	// Overlap sphere to detect player for attack
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	class USphereComponent* AgroSphere;
 
 public:	
 	// Called every frame
