@@ -13,5 +13,19 @@ UCLASS()
 class TPS_PROJECT_API UEnemy1AnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
+
+public:
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateAnimationProperties(float DeltaTime);
+
+private:
+	// To Set Horizontal Enemy Movement speed 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	float Speed;
+
+	// Enemy Reference Instance
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class AEnemy* Enemy;
 	
 };
