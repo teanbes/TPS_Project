@@ -77,6 +77,13 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	bool bIsDead;
 
+	// Enemy Behavior tree
+	UPROPERTY(EditAnywhere, Category = "Behavior Tree", meta = (AllowPrivateAccess = "true"))
+	class UBehaviorTree* BehaviorTree;
+
+	// Patrol Point
+	UPROPERTY(EditAnywhere, Category = "Behavior Tree", meta = (AllowPrivateAccess = "true", MakeEditWidget = "true"))
+	FVector PatrolPoint;
 
 public:	
 	// Called every frame
@@ -92,4 +99,6 @@ public:
 	FORCEINLINE FString GetHeadBone() const { return HeadBone; }
 
 	FORCEINLINE bool GetIsDeath() const { return bIsDead;  }
+
+	FORCEINLINE UBehaviorTree* GetBehaviorTree() const { return BehaviorTree; }
 };
