@@ -36,15 +36,19 @@ void AEnemy::BeginPlay()
 	// Get the AI Enemy Controller
 	EnemyController = Cast<AEnemyController>(GetController());
 
-	// Transform Local PatrolPoint to World sapece
+	// Transform Local Patro lPoints to World sapece
 	FVector WorldPatrolPoint = UKismetMathLibrary::TransformLocation(GetActorTransform(),PatrolPoint);
+	FVector WorldPatrolPoint2 = UKismetMathLibrary::TransformLocation(GetActorTransform(), PatrolPoint2);
 
 	DrawDebugSphere(GetWorld(), WorldPatrolPoint, 25.0f, 12, FColor::Red, true);
+	DrawDebugSphere(GetWorld(), WorldPatrolPoint2, 25.0f, 12, FColor::Red, true);
 	
+
 	if (EnemyController)
 	{
-		// Get Balckboard component
+		// Get Balckboard components
 		EnemyController->GetBlackboardComponent()->SetValueAsVector(TEXT("PatrolPoint"), WorldPatrolPoint);
+		EnemyController->GetBlackboardComponent()->SetValueAsVector(TEXT("PatrolPoint2"), WorldPatrolPoint2);
 
 		// Execute behavior tree
 		EnemyController->RunBehaviorTree(BehaviorTree);
