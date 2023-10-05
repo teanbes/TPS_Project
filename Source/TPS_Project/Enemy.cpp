@@ -20,7 +20,9 @@ AEnemy::AEnemy() :
 	HealthBarDisplayTime(4.0f),
 	bCanHitReact(true),
 	HitReactTimeMin(0.5f),
-	HitReactTimeMax(3.0f)
+	HitReactTimeMax(3.0f),
+	bStunned(false),
+	StunProbability(0.5f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -110,6 +112,15 @@ void AEnemy::AgroSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 	}
 }
 
+void AEnemy::SetStunned(bool Stunned)
+{
+	bStunned = Stunned;
+	if (EnemyController)
+	{
+		EnemyController->GetBlackboardComponent()->SetValueAsBool(TEXT("Stunned"), Stunned);
+	}
+}
+
 // Called every frame
 void AEnemy::Tick(float DeltaTime)
 {
@@ -136,7 +147,15 @@ void AEnemy::BulletHit_Implementation(FHitResult HitResult)
 	}
 
 	ShowHealthBar();
-	PlayHitMontage(FName("HitReactFront"));
+
+	// Determine whether bullet hit stuns
+	const float Stunned = FMath::FRandRange(0.0f, 1.0f);
+	if (Stunned <= StunProbability)
+	{
+		// Stun Enemy
+		PlayHitMontage(FName("HitReactFront"));
+		SetStunned(true);
+	}
 }
 
 float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)

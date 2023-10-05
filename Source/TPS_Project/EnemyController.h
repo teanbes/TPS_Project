@@ -15,7 +15,6 @@ class TPS_PROJECT_API AEnemyController : public AAIController
 	GENERATED_BODY()
 	
 public:
-
 	AEnemyController();
 	virtual void OnPossess(APawn* InPawn) override;
 
