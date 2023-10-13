@@ -383,6 +383,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	class USoundCue* MeleeImpactSound;
 
+	// Player gets hit particles
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UParticleSystem* BloodParticles;
+
 public:
 	// Returns CameraBoom (SpringArmComponent) subobject
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -412,5 +416,6 @@ public:
 	void IncrementInterpLocItemCount(int32 Index, int32 Amount);
 
 	FORCEINLINE USoundCue* GetMeleeImpactSound() const { return MeleeImpactSound; }
+	FORCEINLINE UParticleSystem* GetBloodParticles() const { return BloodParticles; }
 
 };

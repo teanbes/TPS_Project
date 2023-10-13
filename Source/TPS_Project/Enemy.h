@@ -71,7 +71,8 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void DeactivateRightWeapon();
 
-	void DoDamage(AActor* Victim);
+	void DoDamage(class APlayerCharacter* Victim);
+	void SpawnBlood(APlayerCharacter* Victim, FName SocketName);
 
 private:
 	// Particles to spawn when hit by bullets
@@ -172,6 +173,12 @@ private:
 	// Enemy damage
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float BaseDamage;
+
+	// Weapons Sockets for particles
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	FName LeftWeaponSocket;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	FName RightWeaponSocket;
 
 public:	
 	// Called every frame

@@ -13,6 +13,7 @@
 #include "PlayerCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/BoxComponent.h"
+#include "Engine/SkeletalMeshSocket.h"
 
 
 // Sets default values
@@ -31,7 +32,10 @@ AEnemy::AEnemy() :
 	AttackL(TEXT("AttackL")),
 	AttackR(TEXT("AttackR")),
 	// Enemy Damage
-	BaseDamage(20.0f)
+	BaseDamage(20.0f),
+	// Weapon sockets
+	LeftWeaponSocket(TEXT("HitSocketL")),
+	RightWeaponSocket(TEXT("HitSocketR"))
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -236,31 +240,55 @@ FName AEnemy::GetAttackSectionName()
 }
 
 
-void AEnemy::DoDamage(AActor* Victim)
+void AEnemy::DoDamage(APlayerCharacter* Victim)
 {
 	if (Victim == nullptr) return;
 
-	auto Character = Cast<APlayerCharacter>(Victim);
-	if (Character)
+	if (Victim)
 	{
-		UGameplayStatics::ApplyDamage(Character, BaseDamage, EnemyController, this, UDamageType::StaticClass());
-	}
+		UGameplayStatics::ApplyDamage(Victim, BaseDamage, EnemyController, this, UDamageType::StaticClass());
 
-	if (Character->GetMeleeImpactSound())
+		if (Victim->GetMeleeImpactSound())
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, Victim->GetMeleeImpactSound(), GetActorLocation());
+		}
+	}
+}
+ 
+// Blood particles spawner
+void AEnemy::SpawnBlood(APlayerCharacter* Victim, FName SocketName)
+{
+	const USkeletalMeshSocket* TipSocket{ GetMesh()->GetSocketByName(SocketName) };
+
+	if (TipSocket)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, Character->GetMeleeImpactSound(), GetActorLocation());
+		const FTransform SocketTransform{ TipSocket->GetSocketTransform(GetMesh()) };
+		if (Victim->GetBloodParticles())
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), Victim->GetBloodParticles(), SocketTransform);
+		}
 	}
 }
 
 // Weapons Collision logic
 void AEnemy::OnLeftWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	DoDamage(OtherActor);
+	auto Character = Cast<APlayerCharacter>(OtherActor);
+	if (Character)
+	{
+		DoDamage(Character);
+		SpawnBlood(Character, LeftWeaponSocket);
+	}
 }
 
 void AEnemy::OnRightWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	DoDamage(OtherActor);
+	auto Character = Cast<APlayerCharacter>(OtherActor);
+	if (Character)
+	{
+		DoDamage(Character);
+		SpawnBlood(Character, RightWeaponSocket);
+	}
 }
 
 void AEnemy::ActivateLeftWeapon()
