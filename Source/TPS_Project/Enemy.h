@@ -74,6 +74,9 @@ protected:
 	void DoDamage(class APlayerCharacter* Victim);
 	void SpawnBlood(APlayerCharacter* Victim, FName SocketName);
 
+	// Reset enemy attack timer
+	void ResetCanAttack();
+
 private:
 	// Particles to spawn when hit by bullets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
@@ -179,6 +182,16 @@ private:
 	FName LeftWeaponSocket;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	FName RightWeaponSocket;
+
+	// True when enemy can attack
+	UPROPERTY(VisibleAnywhere, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	bool bCanAttack;
+
+	FTimerHandle AttackTimer;
+
+	// wait time between attacks
+	UPROPERTY(EditAnywhere, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	float AttackWaitTime;
 
 public:	
 	// Called every frame

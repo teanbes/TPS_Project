@@ -35,7 +35,9 @@ AEnemy::AEnemy() :
 	BaseDamage(20.0f),
 	// Weapon sockets
 	LeftWeaponSocket(TEXT("HitSocketL")),
-	RightWeaponSocket(TEXT("HitSocketR"))
+	RightWeaponSocket(TEXT("HitSocketR")),
+	bCanAttack(true),
+	AttackWaitTime(1.0f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -91,6 +93,10 @@ void AEnemy::BeginPlay()
 
 	// Get the AI Enemy Controller
 	EnemyController = Cast<AEnemyController>(GetController());
+	if (EnemyController)
+	{
+		EnemyController->GetBlackboardComponent()->SetValueAsBool(FName("CanAttack"), true);
+	}
 
 	// Transform Local Patro lPoints to World sapece
 	FVector WorldPatrolPoint = UKismetMathLibrary::TransformLocation(GetActorTransform(),PatrolPoint);
@@ -213,6 +219,14 @@ void AEnemy::PlayAttackMontage(FName Section, float PlayRate)
 		AnimInstance->Montage_Play(AttackMontage, PlayRate);
 		AnimInstance->Montage_JumpToSection(Section, AttackMontage);
 	}
+
+	// attack timer logic
+	bCanAttack = false;
+	GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemy::ResetCanAttack, AttackWaitTime); 
+	if (EnemyController)
+	{
+		EnemyController->GetBlackboardComponent()->SetValueAsBool(FName("CanAttack"), false);
+	}
 }
 
 // Gets random attack section in montage
@@ -267,6 +281,16 @@ void AEnemy::SpawnBlood(APlayerCharacter* Victim, FName SocketName)
 		{
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), Victim->GetBloodParticles(), SocketTransform);
 		}
+	}
+}
+
+// Reset enemy attack timer
+void AEnemy::ResetCanAttack()
+{
+	bCanAttack = true;
+	if (EnemyController)
+	{
+		EnemyController->GetBlackboardComponent()->SetValueAsBool(FName("CanAttack"), true);
 	}
 }
 
