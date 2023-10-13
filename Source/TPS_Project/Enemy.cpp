@@ -245,6 +245,11 @@ void AEnemy::DoDamage(AActor* Victim)
 	{
 		UGameplayStatics::ApplyDamage(Character, BaseDamage, EnemyController, this, UDamageType::StaticClass());
 	}
+
+	if (Character->GetMeleeImpactSound())
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, Character->GetMeleeImpactSound(), GetActorLocation());
+	}
 }
 
 // Weapons Collision logic
@@ -277,7 +282,6 @@ void AEnemy::DeactivateRightWeapon()
 {
 	RightWeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
-
 
 
 // Called every frame

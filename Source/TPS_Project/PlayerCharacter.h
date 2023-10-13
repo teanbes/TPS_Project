@@ -379,6 +379,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float MaxHealth;
 
+	// Player gets hit sound
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	class USoundCue* MeleeImpactSound;
+
 public:
 	// Returns CameraBoom (SpringArmComponent) subobject
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -406,4 +410,7 @@ public:
 	int32 GetInterpLocationindex();
 
 	void IncrementInterpLocItemCount(int32 Index, int32 Amount);
+
+	FORCEINLINE USoundCue* GetMeleeImpactSound() const { return MeleeImpactSound; }
+
 };
