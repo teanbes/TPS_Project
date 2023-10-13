@@ -292,7 +292,10 @@ bool APlayerCharacter::GetBeamEndLocations(const FVector& MuzzleSocketLocation_L
 
 void APlayerCharacter::AimingButtonPressed()
 {
-	bAiming = true;
+	if (CombatState != ECombatState::ECState_Reloading)
+	{
+		bAiming = true;
+	}
 }
 
 void APlayerCharacter::AimingButtonReleased()
