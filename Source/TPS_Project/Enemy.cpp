@@ -25,10 +25,13 @@ AEnemy::AEnemy() :
 	HitReactTimeMax(3.0f),
 	bStunned(false),
 	StunProbability(0.5f),
-	AttackLFast(TEXT("AttackLFast")), // Montage section
-	AttackRFast(TEXT("AttackRFast")),// Montage section
-	AttackL(TEXT("AttackL")),// Montage section
-	AttackR(TEXT("AttackR"))// Montage section
+	// Montage section names
+	AttackLFast(TEXT("AttackLFast")), 
+	AttackRFast(TEXT("AttackRFast")),
+	AttackL(TEXT("AttackL")),
+	AttackR(TEXT("AttackR")),
+	// Enemy Damage
+	BaseDamage(20.0f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -232,12 +235,27 @@ FName AEnemy::GetAttackSectionName()
 	return SectionName;
 }
 
+
+void AEnemy::DoDamage(AActor* Victim)
+{
+	if (Victim == nullptr) return;
+
+	auto Character = Cast<APlayerCharacter>(Victim);
+	if (Character)
+	{
+		UGameplayStatics::ApplyDamage(Character, BaseDamage, EnemyController, this, UDamageType::StaticClass());
+	}
+}
+
+// Weapons Collision logic
 void AEnemy::OnLeftWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	DoDamage(OtherActor);
 }
 
 void AEnemy::OnRightWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	DoDamage(OtherActor);
 }
 
 void AEnemy::ActivateLeftWeapon()
@@ -257,8 +275,10 @@ void AEnemy::ActivateRightWeapon()
 
 void AEnemy::DeactivateRightWeapon()
 {
-	RightWeaponCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	RightWeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
+
+
 
 // Called every frame
 void AEnemy::Tick(float DeltaTime)

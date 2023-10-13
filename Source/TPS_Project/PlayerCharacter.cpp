@@ -66,7 +66,10 @@ APlayerCharacter::APlayerCharacter() :
 	CameraInterpElevation(65.0f),
 	// Starting ammo amounts
 	Starting9mmAmmo(85),
-	StartingARAmmo(120)
+	StartingARAmmo(120),
+	//Player Health
+	Health(100.f),
+	MaxHealth(100.f)
 	
 
 {
@@ -123,6 +126,19 @@ APlayerCharacter::APlayerCharacter() :
 	InterpComponent6->SetupAttachment(GetFollowCamera());
 
 }
+
+	float APlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* playerController, AActor* DamageCauser)
+	{
+		if (Health - DamageAmount <= 0.0f)
+		{
+			Health = 0.0f;
+		}
+		else
+		{
+			Health -= DamageAmount;
+		}
+		return DamageAmount;
+	}
 
 // Called when the game starts or when spawned
 void APlayerCharacter::BeginPlay()
