@@ -107,7 +107,7 @@ protected:
 	class AWeapon* SpawnDefaultWeapon();
 
 	// Sttach weapon to player mesh 
-	void EquipWeapon(AWeapon* WeaponToEquip);
+	void EquipWeapon(class AWeapon* WeaponToEquip);
 
 	// Drop weapon
 	void DropWeapon();
@@ -149,6 +149,11 @@ protected:
 	void PickupAmmo(class AAmmo* Ammo);
 
 	void InitializeInterpLocations();
+
+	void Die();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishDeath();
 
 
 public:	
@@ -379,6 +384,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float MaxHealth;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	bool bIsDeath;
+
 	// Player gets hit sound
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	class USoundCue* MeleeImpactSound;
@@ -386,6 +394,10 @@ private:
 	// Player gets hit particles
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UParticleSystem* BloodParticles;
+
+	// Player death montage
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* DeathMontage;
 
 public:
 	// Returns CameraBoom (SpringArmComponent) subobject

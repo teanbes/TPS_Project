@@ -33,6 +33,8 @@ AEnemy::AEnemy() :
 	AttackR(TEXT("AttackR")),
 	// Enemy Damage
 	BaseDamage(20.0f),
+	bIsDead(false),
+	DeathTime(4.0f),
 	// Weapon sockets
 	LeftWeaponSocket(TEXT("HitSocketL")),
 	RightWeaponSocket(TEXT("HitSocketR")),
@@ -61,7 +63,6 @@ AEnemy::AEnemy() :
 void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
-	bIsDead = false;
 
 	// Bind AgroSphere Overlaps
 	AgroSphere->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::AgroSphereOverlap);
@@ -124,9 +125,23 @@ void AEnemy::ShowHealthBar_Implementation()
 
 void AEnemy::Die()
 {
+	if (bIsDead) return;
 	bIsDead = true;
+
 	HideHealthBar();
-	Destroy();
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && DeathMontage)
+	{
+		AnimInstance->Montage_Play(DeathMontage);
+	}
+	
+	// if dead set GetBlackboardComponent 'Dead' to true
+	if (EnemyController)
+	{
+		EnemyController->GetBlackboardComponent()->SetValueAsBool(FName("Dead"), true);
+		EnemyController->StopMovement();
+	}
 }
 
 void AEnemy::PlayHitMontage(FName Section, float PlayRate)
@@ -294,6 +309,18 @@ void AEnemy::ResetCanAttack()
 	}
 }
 
+void AEnemy::FinishDeath()
+{
+	GetMesh()->bPauseAnims = true;
+
+	GetWorldTimerManager().SetTimer(DeathTimer, this, &AEnemy::DestroyEnemy, DeathTime);
+}
+
+void AEnemy::DestroyEnemy()
+{
+	Destroy();
+}
+
 // Weapons Collision logic
 void AEnemy::OnLeftWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -358,6 +385,8 @@ void AEnemy::BulletHit_Implementation(FHitResult HitResult)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, HitResult.Location, FRotator(0.0f), true);
 	}
+	
+	if (bIsDead) return;
 
 	ShowHealthBar();
 
@@ -373,7 +402,13 @@ void AEnemy::BulletHit_Implementation(FHitResult HitResult)
 
 float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	if (Health - DamageAmount <= 0.f)
+	// Agro Enemy when damage caused
+	if (EnemyController)
+	{
+		// Set Blackboard comp to target to attack player
+		EnemyController->GetBlackboardComponent()->SetValueAsObject(FName("Target"), DamageCauser);
+	}
+	if (Health - DamageAmount <= 0.0f)
 	{
 		Health = 0.0f;
 		Die();

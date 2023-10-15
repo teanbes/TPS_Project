@@ -19,6 +19,8 @@
 #include "Ammo.h"
 #include "BulletHitInterface.h"
 #include "Enemy.h"
+#include "EnemyController.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 
 // Sets default values
@@ -69,9 +71,8 @@ APlayerCharacter::APlayerCharacter() :
 	StartingARAmmo(120),
 	//Player Health
 	Health(100.f),
-	MaxHealth(100.f)
-	
-
+	MaxHealth(100.f),
+	bIsDeath(false)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -127,18 +128,49 @@ APlayerCharacter::APlayerCharacter() :
 
 }
 
-	float APlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* playerController, AActor* DamageCauser)
+float APlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	if (Health - DamageAmount <= 0.0f)
 	{
-		if (Health - DamageAmount <= 0.0f)
+		Health = 0.0f;
+		Die();
+
+		auto EnemyController = Cast<AEnemyController>(EventInstigator);
+		if (EnemyController)
 		{
-			Health = 0.0f;
+			EnemyController->GetBlackboardComponent()->SetValueAsBool(FName(TEXT("PlayerDead")), true);
 		}
-		else
-		{
-			Health -= DamageAmount;
-		}
-		return DamageAmount;
 	}
+	else
+	{
+		Health -= DamageAmount;
+	}
+	return DamageAmount;
+}
+
+void APlayerCharacter::Die()
+{
+	if (bIsDeath) return;
+
+	bIsDeath = true;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && DeathMontage)
+	{
+		AnimInstance->Montage_Play(DeathMontage);
+	}
+}
+
+void APlayerCharacter::FinishDeath()
+{
+	GetMesh()->bPauseAnims = true;
+
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (PC)
+	{
+		DisableInput(PC);
+	}
+}
 
 // Called when the game starts or when spawned
 void APlayerCharacter::BeginPlay()
@@ -811,6 +843,7 @@ void APlayerCharacter::InitializeInterpLocations()
 	FInterpLocation InterpLoc6{ InterpComponent6, 0 };
 	InterpLocations.Add(InterpLoc6);
 }
+
 
 int32 APlayerCharacter::GetInterpLocationindex()
 {
