@@ -93,7 +93,7 @@ private:
 	class USoundCue* ImpactSound;
 
 	// Current enemy health
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float Health;
 
 	// Max enemy health
