@@ -671,8 +671,8 @@ void APlayerCharacter::SpawnBullet()
 
 				if (BulletHitInterface_L && BulletHitInterface_R)
 				{
-					BulletHitInterface_L->BulletHit_Implementation(BeamHitResult_L);
-					BulletHitInterface_R->BulletHit_Implementation(BeamHitResult_R);
+					BulletHitInterface_L->BulletHit_Implementation(BeamHitResult_L, this, GetController());
+					BulletHitInterface_R->BulletHit_Implementation(BeamHitResult_R, this, GetController());
 				}
 
 				AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult_R.GetActor());

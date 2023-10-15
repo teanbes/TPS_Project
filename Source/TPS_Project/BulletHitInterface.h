@@ -24,5 +24,5 @@ class TPS_PROJECT_API IBulletHitInterface
 public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void BulletHit(FHitResult HitResult);
+		void BulletHit(FHitResult HitResult, AActor* Player , AController* PlayerController);
 };
