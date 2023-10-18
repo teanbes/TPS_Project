@@ -14,6 +14,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/BoxComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "Blueprint/UserWidget.h"
 
 
 // Sets default values
@@ -39,7 +40,8 @@ AEnemy::AEnemy() :
 	LeftWeaponSocket(TEXT("HitSocketL")),
 	RightWeaponSocket(TEXT("HitSocketR")),
 	bCanAttack(true),
-	AttackWaitTime(1.0f)
+	AttackWaitTime(1.0f),
+	HitNumberDestroyTime(1.5f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -328,6 +330,40 @@ void AEnemy::DestroyEnemy()
 	Destroy();
 }
 
+void AEnemy::StoreHitNumber(UUserWidget* HitNumber, FVector Location)
+{
+	HitNumbers.Add(HitNumber, Location);
+
+	FTimerHandle HitNumberTimer;
+	FTimerDelegate HitNumberDelagate;
+
+	HitNumberDelagate.BindUFunction(this, FName("DestroyHitNumber"), HitNumber);
+	GetWorld()->GetTimerManager().SetTimer(HitNumberTimer, HitNumberDelagate, HitNumberDestroyTime, false);
+}
+
+void AEnemy::DestroyHitNumber(UUserWidget* HitNumber)
+{
+	HitNumbers.Remove(HitNumber);
+	HitNumber->RemoveFromParent();
+}
+
+// Hud Hit Numbers
+void AEnemy::UpdateHitNumbers() 
+{
+	// update location of hit number in map
+	for (auto& HitPair : HitNumbers)
+	{
+		UUserWidget* HitNumber{ HitPair.Key };
+		const FVector Location{ HitPair.Value };
+		FVector2D ScreenPosition;
+
+		// Update screen place location
+		UGameplayStatics::ProjectWorldToScreen(GetWorld()->GetFirstPlayerController(), Location, ScreenPosition);
+
+		HitNumber->SetPositionInViewport(ScreenPosition);
+	}
+}
+
 // Weapons Collision logic
 void AEnemy::OnLeftWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -374,6 +410,8 @@ void AEnemy::DeactivateRightWeapon()
 void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	UpdateHitNumbers();
 }
 
 // Called to bind functionality to input

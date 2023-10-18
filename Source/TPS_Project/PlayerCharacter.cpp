@@ -222,12 +222,12 @@ void APlayerCharacter::MoveRight(float Value)
 void APlayerCharacter::TurnAtRate(float Rate)
 {
 	// Delta for this frame from the rate data
-	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds()); //  deg/sec
+	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds()); //  deg/frame
 }
 
 void APlayerCharacter::LookUpAtRate(float Rate)
 {
-	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds()); //  deg/sec
+	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds()); //  deg/frame
 }
 
 void APlayerCharacter::Turn(float Value)
@@ -678,16 +678,26 @@ void APlayerCharacter::SpawnBullet()
 				AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult_R.GetActor());
 				if (HitEnemy)
 				{
+					int32 Damage{};
 					if (BeamHitResult_R.BoneName.ToString() == HitEnemy->GetHeadBone())
 					{
 						// Head shot
-						UGameplayStatics::ApplyDamage(BeamHitResult_R.GetActor(), EquippedWeapon_R->GetHeadShotDamage(), GetController(), this, UDamageType::StaticClass());
+						Damage = EquippedWeapon_R->GetHeadShotDamage();
+						UGameplayStatics::ApplyDamage(BeamHitResult_R.GetActor(), Damage, GetController(), this, UDamageType::StaticClass()); // Only Applying Damage Wth one weapon
+						
+						// HUD hit number
+						HitEnemy->ShowHitNumber(Damage, BeamHitResult_R.Location, true );
 					}
 					else
 					{
 						// shot damage
-						UGameplayStatics::ApplyDamage(BeamHitResult_R.GetActor(), EquippedWeapon_R->GetDamage(), GetController(), this, UDamageType::StaticClass());
+						Damage = EquippedWeapon_R->GetDamage();
+						UGameplayStatics::ApplyDamage(BeamHitResult_R.GetActor(), Damage, GetController(), this, UDamageType::StaticClass());// Only Applying Damage Wth one weapon
+
+						// HUD hit number
+						HitEnemy->ShowHitNumber(Damage, BeamHitResult_R.Location, false);
 					}
+					
 				}
 			}
 			else

@@ -164,7 +164,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
-	// Camera boom positioning the camera behind tge player 
+	// Camera boom, positioning the camera behind the player 
 	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true")) // exposes a private variable to blueprint
 	class USpringArmComponent* CameraBoom;
 	// Follow Camera 
