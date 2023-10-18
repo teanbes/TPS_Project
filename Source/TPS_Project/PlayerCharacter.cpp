@@ -55,7 +55,7 @@ APlayerCharacter::APlayerCharacter() :
 	ShootTimeDuration(0.05f),
 	bFiringBullet(false),
 	// Automatic fire variables
-	AutomaticFireRate(0.1f),
+	AutomaticFireRate(0.2f),
 	bShouldFire(true),
 	bFireButtonPressed(false),
 	// Line tracing variables

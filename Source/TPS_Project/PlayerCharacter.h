@@ -287,6 +287,7 @@ private:
 	bool bShouldFire;
 
 	// Rate of fire automatic gun
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
 	float AutomaticFireRate;
 
 	// Sets a timer between gunshots
