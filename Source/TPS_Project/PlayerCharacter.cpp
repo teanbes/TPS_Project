@@ -279,18 +279,20 @@ void APlayerCharacter::FireWeapon()
 	}
 }
 
+// Dead Eye****************************************************************
 void APlayerCharacter::PerformDeadEye()
 {
-	if (CombatState != ECombatState::ECState_Unoccupied) return;
 
 	if (!bIsDeadEye)
 	{
+		CombatState = ECombatState::ECState_DeadEye;
 		// Slow down time
 		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
 		bIsDeadEye = true;
 	}
 	else
 	{
+		CombatState = ECombatState::ECState_Unoccupied;
 		// Restore normal time
 		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
 		bIsDeadEye = false;
