@@ -32,7 +32,7 @@ APlayerCharacter::APlayerCharacter() :
 	bAiming(false),
 	// Camera field of view values
 	CameraDefaultFOV(0.0f), // setting in BeginPlay
-	CameraZoomedFOV(40.0f),
+	CameraZoomedFOV(30.0f),
 	CameraCurrentFOV(0.0f),
 	ZoomInterpSpeed(30.0f),
 	// Turn rates for aiming
@@ -72,7 +72,8 @@ APlayerCharacter::APlayerCharacter() :
 	//Player Health
 	Health(100.f),
 	MaxHealth(100.f),
-	bIsDeath(false)
+	bIsDeath(false),
+	bIsDeadEye(false)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -82,7 +83,7 @@ APlayerCharacter::APlayerCharacter() :
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 270.0f; // The camera follows teh player at this distance
 	CameraBoom->bUsePawnControlRotation = true; // controls rotation
-	CameraBoom->SocketOffset = FVector(0.0f, 50.0f, 70.0f); // Offset the camera for the crosshair
+	CameraBoom->SocketOffset = FVector(0.0f, 70.0f, 70.0f); // Offset the camera for the crosshair
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -176,6 +177,8 @@ void APlayerCharacter::FinishDeath()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+
 	//UE_LOG(LogTemp, Warning, TEXT("BeginPlay() called!"));
 
 	if (FollowCamera)
@@ -273,6 +276,24 @@ void APlayerCharacter::FireWeapon()
 		EquippedWeapon_R->DecreaseAmmo();
 		//EquippedWeapon_L->DecreaseAmmo(); one weapon for testing
 		StartFireTimer();
+	}
+}
+
+void APlayerCharacter::PerformDeadEye()
+{
+	if (CombatState != ECombatState::ECState_Unoccupied) return;
+
+	if (!bIsDeadEye)
+	{
+		// Slow down time
+		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
+		bIsDeadEye = true;
+	}
+	else
+	{
+		// Restore normal time
+		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
+		bIsDeadEye = false;
 	}
 }
 
@@ -928,6 +949,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Interact", IE_Released, this, &APlayerCharacter::SelectButtonReleased);
 
 	PlayerInputComponent->BindAction("ReloadButton", IE_Pressed, this, &APlayerCharacter::ReloadButtonPressed);
+
+	PlayerInputComponent->BindAction("DeadEye", IE_Pressed, this, &APlayerCharacter::PerformDeadEye);
 
 }
 

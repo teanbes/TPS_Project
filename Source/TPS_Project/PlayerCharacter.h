@@ -14,6 +14,7 @@ enum class ECombatState : uint8
 	ECState_Unoccupied UMETA(DisplayName = "Unoccupied"),
 	ECState_FireTimerInProgress UMETA(DisplayName = "FireTimerInProgress"),
 	ECState_Reloading UMETA(DisplayName = "Reloading"),
+	ECState_DeadEye UMETA(DisplayName = "DeadEye"),
 
 	ECSState_MAX UMETA(DisplayName = "DefaultMAX")
 };
@@ -155,6 +156,8 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void FinishDeath();
 
+	// Dead Eye
+	void PerformDeadEye();
 
 public:	
 	// Called every frame
@@ -399,6 +402,10 @@ private:
 	// Player death montage
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* DeathMontage;
+
+	// Dead Eye
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	bool bIsDeadEye;
 
 public:
 	// Returns CameraBoom (SpringArmComponent) subobject

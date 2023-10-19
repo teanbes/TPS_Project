@@ -13,5 +13,7 @@ UCLASS()
 class TPS_PROJECT_API ATPS_ProjectGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
+
+	virtual void StartPlay() override;
 	
 };
