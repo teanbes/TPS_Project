@@ -15,6 +15,7 @@ enum class ECombatState : uint8
 	ECState_FireTimerInProgress UMETA(DisplayName = "FireTimerInProgress"),
 	ECState_Reloading UMETA(DisplayName = "Reloading"),
 	ECState_DeadEye UMETA(DisplayName = "DeadEye"),
+	ECState_GravityPower UMETA(DisplayName = "GravityPower"),
 
 	ECSState_MAX UMETA(DisplayName = "DefaultMAX")
 };
@@ -158,6 +159,9 @@ protected:
 
 	// Dead Eye
 	void PerformDeadEye();
+
+	// 
+	void GravityPowerUp();
 
 public:	
 	// Called every frame
@@ -407,6 +411,9 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	bool bIsDeadEye;
 
+	// Grabber reference
+	class  UGrabber* GrabberRef;
+
 public:
 	// Returns CameraBoom (SpringArmComponent) subobject
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -437,5 +444,10 @@ public:
 
 	FORCEINLINE USoundCue* GetMeleeImpactSound() const { return MeleeImpactSound; }
 	FORCEINLINE UParticleSystem* GetBloodParticles() const { return BloodParticles; }
+
+	FORCEINLINE bool GetIsDeadEye() const { return bIsDeadEye; }
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void DeadEyeWidget();
 
 };

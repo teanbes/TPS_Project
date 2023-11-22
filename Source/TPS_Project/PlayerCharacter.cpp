@@ -21,6 +21,7 @@
 #include "Enemy.h"
 #include "EnemyController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Grabber.h"
 
 
 // Sets default values
@@ -127,6 +128,8 @@ APlayerCharacter::APlayerCharacter() :
 	InterpComponent6 = CreateDefaultSubobject<USceneComponent>(TEXT("Interpolation Component 6"));
 	InterpComponent6->SetupAttachment(GetFollowCamera());
 
+	GrabberRef = CreateDefaultSubobject<UGrabber>(TEXT("Grabber Component"));
+	GrabberRef->SetupAttachment(GetFollowCamera());
 }
 
 float APlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -282,13 +285,13 @@ void APlayerCharacter::FireWeapon()
 // Dead Eye****************************************************************
 void APlayerCharacter::PerformDeadEye()
 {
-
 	if (!bIsDeadEye)
 	{
 		CombatState = ECombatState::ECState_DeadEye;
 		// Slow down time
 		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
 		bIsDeadEye = true;
+		DeadEyeWidget();
 	}
 	else
 	{
@@ -296,6 +299,21 @@ void APlayerCharacter::PerformDeadEye()
 		// Restore normal time
 		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
 		bIsDeadEye = false;
+	}
+}
+
+void APlayerCharacter::GravityPowerUp()
+{
+	UE_LOG(LogTemp, Display, TEXT("GravityPowerUp"));
+
+	
+	if (GrabberRef != nullptr)
+	{
+		GrabberRef->Grab();
+	}
+	else 
+	{
+		UE_LOG(LogTemp, Display, TEXT("There is no Grabber Component"));
 	}
 }
 
@@ -342,7 +360,6 @@ bool APlayerCharacter::GetBeamEndLocations(const FVector& MuzzleSocketLocation_L
 		return false;
 	}
 	return true;
-	
 }
 
 void APlayerCharacter::AimingButtonPressed()
@@ -906,6 +923,8 @@ void APlayerCharacter::IncrementInterpLocItemCount(int32 Index, int32 Amount)
 
 
 
+
+
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
@@ -954,6 +973,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAction("DeadEye", IE_Pressed, this, &APlayerCharacter::PerformDeadEye);
 
+	PlayerInputComponent->BindAction("Grab", IE_Pressed, this, &APlayerCharacter::GravityPowerUp);
 }
 
 void APlayerCharacter::FinishReloading()
