@@ -23,6 +23,10 @@ AExplosive::AExplosive():
 	OverlapSphere = CreateDefaultSubobject<USphereComponent>(TEXT("OverlapSphere"));
 	OverlapSphere->SetupAttachment(GetRootComponent());
 
+	SphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
+	SphereCollision->SetupAttachment(GetRootComponent());
+	SphereCollision->OnComponentHit.AddDynamic(this, &AExplosive::OnExplosiveHit);
+
 }
 
 // Called when the game starts or when spawned
@@ -30,6 +34,21 @@ void AExplosive::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void AExplosive::OnExplosiveHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (ImpactSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
+	}
+	if (ExplosionParticles)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionParticles, Hit.Location, FRotator(0.0f), true);
+	}
+
+	ApplyExplosiveDamage(OtherActor, nullptr, nullptr);
+	Destroy();
 }
 
 // Called every frame
@@ -56,11 +75,19 @@ void AExplosive::BulletHit_Implementation(FHitResult HitResult, AActor* Player, 
 
 	for (auto Actor : OverlappingActors)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Actor damaged by explosive: %s"), *Actor->GetName());
+		ApplyExplosiveDamage(Actor, PlayerController, Player);
 
-		UGameplayStatics::ApplyDamage(Actor, Damage, PlayerController, Player, UDamageType::StaticClass());
+		/*UE_LOG(LogTemp, Warning, TEXT("Actor damaged by explosive: %s"), *Actor->GetName());
+
+		UGameplayStatics::ApplyDamage(Actor, Damage, PlayerController, Player, UDamageType::StaticClass());*/
 	}
 
 	Destroy();
+}
+
+void AExplosive::ApplyExplosiveDamage(AActor* DamagedActor, AController* PlayerController, AActor* Player)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Actor damaged by explosive: %s"), *DamagedActor->GetName());
+	UGameplayStatics::ApplyDamage(DamagedActor, Damage, PlayerController, Player, UDamageType::StaticClass());
 }
 

@@ -20,6 +20,10 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	void OnExplosiveHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+
 private:
 
 	// Explosion when hit by a bullet 
@@ -38,12 +42,19 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	class USphereComponent* OverlapSphere;
 
+	// OverlapSphere to detect what actors are within the range of explosion
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	USphereComponent* SphereCollision;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float Damage;
+
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void BulletHit_Implementation(FHitResult HitResult, AActor* Player, AController* PlayerController) override;
+	
+	void ApplyExplosiveDamage(AActor* DamagedActor, AController* PlayerController, AActor* Player);
 };

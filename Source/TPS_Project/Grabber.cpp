@@ -77,7 +77,7 @@ void UGrabber::Grab()
 		if (GrabbedComponent->IsSimulatingPhysics()) // Check if the grabbed component is simulating physics
 		{
 			FVector ImpulseDirection = PhysicsHandle->GetOwner()->GetActorForwardVector();
-			float ImpulseStrength = 3000.0f; 
+			float ImpulseStrength = 2000.0f; 
 
 			GrabbedComponent->AddImpulse(ImpulseDirection * ImpulseStrength, NAME_None, true);
 		}
