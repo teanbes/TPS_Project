@@ -160,8 +160,14 @@ protected:
 	// Dead Eye
 	void PerformDeadEye();
 
-	// 
+	// Call Gravity Power Up
 	void GravityPowerUp();
+
+	// Rotates grabbable object if Grabbed Component
+	UFUNCTION()
+	void RotateX();
+	UFUNCTION()
+	void RotateZ();
 
 public:	
 	// Called every frame
@@ -412,7 +418,16 @@ private:
 	bool bIsDeadEye;
 
 	// Grabber reference
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	class  UGrabber* GrabberRef;
+
+	// Gravity power Up anim
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* GravityPowerAnim;
+
+	// Grabbed component rotation speed
+	float GrabbedComponentRotationSpeed = 0.1f;
+
 
 public:
 	// Returns CameraBoom (SpringArmComponent) subobject

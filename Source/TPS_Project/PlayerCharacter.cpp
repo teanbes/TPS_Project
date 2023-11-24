@@ -302,18 +302,48 @@ void APlayerCharacter::PerformDeadEye()
 	}
 }
 
+
+// Gravity Power
 void APlayerCharacter::GravityPowerUp()
 {
 	UE_LOG(LogTemp, Display, TEXT("GravityPowerUp"));
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
-	
-	if (GrabberRef != nullptr)
+	if (GrabberRef != nullptr )
 	{
 		GrabberRef->Grab();
+		if (GrabberRef->GetHasGrabbable() == true)
+		{
+			AnimInstance->Montage_Play(GravityPowerAnim);
+		}
+		else if(GrabberRef->GetHasGrabbable() == false)
+		{
+			AnimInstance->Montage_JumpToSection(FName("EndPower"));
+		}
 	}
 	else 
 	{
 		UE_LOG(LogTemp, Display, TEXT("There is no Grabber Component"));
+	}
+}
+
+void APlayerCharacter::RotateX()
+{
+	UE_LOG(LogTemp, Display, TEXT("RotateX"));
+	if (GrabberRef != nullptr)
+	{
+		
+		GrabberRef->RotateX();
+		
+	}
+}
+
+void APlayerCharacter::RotateZ()
+{
+	if (GrabberRef != nullptr)
+	{
+		UE_LOG(LogTemp, Display, TEXT("RotateZ"));
+		GrabberRef->RotateZ();
 	}
 }
 
@@ -774,6 +804,7 @@ void APlayerCharacter::PlayGunfireAnim()
 	{
 		AnimInstance->Montage_Play(HipFireMontage);
 		AnimInstance->Montage_JumpToSection(FName("StartFire"));
+		
 	}
 	//Start bullet fire timer for crosshairs
 	StartCrosshairBulletFire();
@@ -974,6 +1005,11 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("DeadEye", IE_Pressed, this, &APlayerCharacter::PerformDeadEye);
 
 	PlayerInputComponent->BindAction("Grab", IE_Pressed, this, &APlayerCharacter::GravityPowerUp);
+
+	PlayerInputComponent->BindAction("RotateX", IE_Pressed, this, &APlayerCharacter::RotateX);
+	PlayerInputComponent->BindAction("RotateZ", IE_Pressed, this, &APlayerCharacter::RotateZ);
+
+	
 }
 
 void APlayerCharacter::FinishReloading()

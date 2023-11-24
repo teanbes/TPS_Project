@@ -68,8 +68,19 @@ void UGrabber::Grab()
 
 		bHasGrabbable = true;
 	}
-	else if (PhysicsHandle->GetGrabbedComponent() != nullptr && bHasGrabbable == true) // Release grabbed component
+	// Release grabbed component
+	else if (PhysicsHandle->GetGrabbedComponent() != nullptr && bHasGrabbable == true) 
 	{
+		UPrimitiveComponent* GrabbedComponent = PhysicsHandle->GetGrabbedComponent();
+
+		// Apply impulse force forward to the grabbed component on release
+		if (GrabbedComponent->IsSimulatingPhysics()) // Check if the grabbed component is simulating physics
+		{
+			FVector ImpulseDirection = PhysicsHandle->GetOwner()->GetActorForwardVector();
+			float ImpulseStrength = 3000.0f; 
+
+			GrabbedComponent->AddImpulse(ImpulseDirection * ImpulseStrength, NAME_None, true);
+		}
 		PhysicsHandle->GetGrabbedComponent()->WakeAllRigidBodies();
 		PhysicsHandle->ReleaseComponent();
 		bHasGrabbable = false;
@@ -78,11 +89,11 @@ void UGrabber::Grab()
 
 void UGrabber::Released()
 {
-	UPhysicsHandleComponent* PhysicsHandle = GetPhysicsHandle();
+	/*UPhysicsHandleComponent* PhysicsHandle = GetPhysicsHandle();
 	if (PhysicsHandle == nullptr)
 	{
 		return;
-	}
+	}*/
 
 	// Release grabbed component
 	/*if (PhysicsHandle->GetGrabbedComponent() != nullptr)
@@ -93,6 +104,43 @@ void UGrabber::Released()
 
 
 	
+}
+
+void UGrabber::RotateX()
+{
+	UPhysicsHandleComponent* PhysicsHandle = GetPhysicsHandle();
+	if (PhysicsHandle == nullptr || !PhysicsHandle->GetGrabbedComponent())
+	{
+		return;
+	}
+	FTransform TargetTransform = PhysicsHandle->TargetTransform;
+	PhysicsHandle->bRotationConstrained = false;
+	// New rotation by adding a 90-degree turn around the X-axis
+	FRotator NewRotation = FRotator(TargetTransform.GetRotation().Rotator().Pitch + 90.0f, TargetTransform.GetRotation().Rotator().Yaw, TargetTransform.GetRotation().Rotator().Roll);
+	TargetTransform.SetRotation(NewRotation.Quaternion());
+	PhysicsHandle->TargetTransform = TargetTransform;
+
+	//FVector TargetLocation;
+	//FRotator TargetRotation;
+	//PhysicsHandle->GetTargetLocationAndRotation(TargetLocation, TargetRotation);
+	// New rotation by adding a 90-degree turn around the X-axis
+	//FRotator NewRotation = FRotator(TargetRotation.Pitch + 90.0f, TargetRotation.Yaw, TargetRotation.Roll);
+	// Set the new rotation
+	//PhysicsHandle->SetTargetRotation(NewRotation);
+}
+
+void UGrabber::RotateZ()
+{
+	UPhysicsHandleComponent* PhysicsHandle = GetPhysicsHandle();
+	if (PhysicsHandle == nullptr || !PhysicsHandle->GetGrabbedComponent())
+	{
+		return;
+	}
+	FTransform TargetTransform = PhysicsHandle->TargetTransform;
+	// New rotation by adding a 90-degree turn around the Z-axis
+	FRotator NewRotation = FRotator(TargetTransform.GetRotation().Rotator().Pitch, TargetTransform.GetRotation().Rotator().Yaw, TargetTransform.GetRotation().Rotator().Roll + 90.0f);
+	TargetTransform.SetRotation(NewRotation.Quaternion());
+	PhysicsHandle->TargetTransform = TargetTransform;
 }
 
 

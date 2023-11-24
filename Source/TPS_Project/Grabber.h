@@ -31,6 +31,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Released();
 
+	// Called to Rotate the grabbed component
+	UFUNCTION()
+	void RotateX();
+	UFUNCTION()
+	void RotateZ();
+
 private:
 
 	UPROPERTY(EditAnywhere)
@@ -46,5 +52,13 @@ private:
 
 	bool GetGrabbableInreach(FHitResult& OutHitResult) const;
 	bool bHasGrabbable;
+
+	FRotator AccumulatedRotation;
+
+	FRotator InitialRotation;
+
 		
+public:
+
+	FORCEINLINE bool GetHasGrabbable() const { return bHasGrabbable; }
 };
