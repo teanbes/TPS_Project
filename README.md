@@ -1,4 +1,2 @@
-# TPS_Project
-Unreal TPS Project
-
+# Third Person Shooter Unreal Project
 Project missing main map, too big for GitHub
