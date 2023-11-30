@@ -169,6 +169,7 @@ protected:
 	UFUNCTION()
 	void RotateZ();
 
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -465,4 +466,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void DeadEyeWidget();
 
+	bool bCanMove;
+
+	bool bIsGrabbed;
 };

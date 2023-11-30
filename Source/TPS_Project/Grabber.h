@@ -57,6 +57,11 @@ private:
 
 	FRotator InitialRotation;
 
+	float TotalRotation;
+
+	UPROPERTY(EditAnywhere)
+	float MouseRotationTurnRate;
+
 		
 public:
 

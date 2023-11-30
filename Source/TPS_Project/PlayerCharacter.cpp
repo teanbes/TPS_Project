@@ -74,7 +74,9 @@ APlayerCharacter::APlayerCharacter() :
 	Health(100.f),
 	MaxHealth(100.f),
 	bIsDeath(false),
-	bIsDeadEye(false)
+	bIsDeadEye(false),
+	bCanMove(true),
+	bIsGrabbed(false)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -200,7 +202,7 @@ void APlayerCharacter::BeginPlay()
 
 void APlayerCharacter::MoveForward(float Value)
 {
-	if ((Controller != nullptr) && (Value != 0.0f))
+	if ((Controller != nullptr) && (Value != 0.0f) && bCanMove == true)
 	{
 		// Find which way is forward
 		const FRotator Rotation{ Controller->GetControlRotation() };
@@ -213,7 +215,7 @@ void APlayerCharacter::MoveForward(float Value)
 
 void APlayerCharacter::MoveRight(float Value)
 {
-	if ((Controller != nullptr) && (Value != 0.0f))
+	if ((Controller != nullptr) && (Value != 0.0f) && bCanMove == true)
 	{
 		// Find which way is right
 		const FRotator Rotation{ Controller->GetControlRotation() };
@@ -346,6 +348,7 @@ void APlayerCharacter::RotateZ()
 		GrabberRef->RotateZ();
 	}
 }
+
 
 bool APlayerCharacter::GetBeamEndLocations(const FVector& MuzzleSocketLocation_L, FHitResult& OutHitResult_L, const FVector& MuzzleSocketLocation_R, FHitResult& OutHitResult_R)
 {
@@ -1009,7 +1012,6 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("RotateX", IE_Pressed, this, &APlayerCharacter::RotateX);
 	PlayerInputComponent->BindAction("RotateZ", IE_Pressed, this, &APlayerCharacter::RotateZ);
 
-	
 }
 
 void APlayerCharacter::FinishReloading()

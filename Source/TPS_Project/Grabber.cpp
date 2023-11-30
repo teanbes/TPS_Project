@@ -5,13 +5,15 @@
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
+#include "PlayerCharacter.h"
 
 // Sets default values for this component's properties
 UGrabber::UGrabber() :
 MaxGrabDistance(1000.0f),
 GrabRadius(100),
 HoldDistance(600),
-bHasGrabbable(false)
+bHasGrabbable(false),
+TotalRotation (0.0f)
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
@@ -89,60 +91,99 @@ void UGrabber::Grab()
 
 void UGrabber::Released()
 {
-	/*UPhysicsHandleComponent* PhysicsHandle = GetPhysicsHandle();
-	if (PhysicsHandle == nullptr)
-	{
-		return;
-	}*/
-
-	// Release grabbed component
-	/*if (PhysicsHandle->GetGrabbedComponent() != nullptr)
-	{
-		PhysicsHandle->GetGrabbedComponent()->WakeAllRigidBodies();
-		PhysicsHandle->ReleaseComponent();
-	}*/
-
-
 	
 }
 
 void UGrabber::RotateX()
 {
-	UPhysicsHandleComponent* PhysicsHandle = GetPhysicsHandle();
-	if (PhysicsHandle == nullptr || !PhysicsHandle->GetGrabbedComponent())
+	if (bHasGrabbable)
 	{
-		return;
-	}
-	FTransform TargetTransform = PhysicsHandle->TargetTransform;
-	PhysicsHandle->bRotationConstrained = false;
-	// New rotation by adding a 90-degree turn around the X-axis
-	FRotator NewRotation = FRotator(TargetTransform.GetRotation().Rotator().Pitch + 90.0f, TargetTransform.GetRotation().Rotator().Yaw, TargetTransform.GetRotation().Rotator().Roll);
-	TargetTransform.SetRotation(NewRotation.Quaternion());
-	PhysicsHandle->TargetTransform = TargetTransform;
+		// Stop player movement (Assuming APlayerCharacter has a function to stop movement)
+		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
+		if (PlayerCharacter)
+		{
+			PlayerCharacter->bCanMove = false;
+		}
 
-	//FVector TargetLocation;
-	//FRotator TargetRotation;
-	//PhysicsHandle->GetTargetLocationAndRotation(TargetLocation, TargetRotation);
-	// New rotation by adding a 90-degree turn around the X-axis
-	//FRotator NewRotation = FRotator(TargetRotation.Pitch + 90.0f, TargetRotation.Yaw, TargetRotation.Roll);
-	// Set the new rotation
-	//PhysicsHandle->SetTargetRotation(NewRotation);
+		// Turn off physics in the grabbed component
+		UPrimitiveComponent* GrabbedComponent = GetPhysicsHandle()->GetGrabbedComponent();
+		if (GrabbedComponent)
+		{
+			GrabbedComponent->SetSimulatePhysics(false);
+		}
+
+		// Release from the physics handler
+		GetPhysicsHandle()->ReleaseComponent();
+		bHasGrabbable = false;
+
+		// Rotate the grabbed component 90 degrees in the X-axis
+		FRotator CurrentRotation = GrabbedComponent->GetComponentRotation();
+		// Rotate the grabbed component by adding 90 degrees to the total rotation
+		TotalRotation += 90.0f;
+
+		// Ensure total rotation is within the range of 0 to 360 degrees
+		TotalRotation = FMath::Fmod(TotalRotation, 360.0f);
+
+		FRotator NewRotation = FRotator(TotalRotation, CurrentRotation.Yaw, CurrentRotation.Roll);
+		GrabbedComponent->SetWorldRotation(NewRotation);
+
+		// Grab the component again
+		Grab();
+
+		// Turn on necessary flags and settings after re-grabbing
+		if (bHasGrabbable)
+		{
+			PlayerCharacter->bCanMove = true;
+			GrabbedComponent->SetSimulatePhysics(true);
+		}
+	}
 }
 
 void UGrabber::RotateZ()
 {
-	UPhysicsHandleComponent* PhysicsHandle = GetPhysicsHandle();
-	if (PhysicsHandle == nullptr || !PhysicsHandle->GetGrabbedComponent())
+	if (bHasGrabbable)
 	{
-		return;
-	}
-	FTransform TargetTransform = PhysicsHandle->TargetTransform;
-	// New rotation by adding a 90-degree turn around the Z-axis
-	FRotator NewRotation = FRotator(TargetTransform.GetRotation().Rotator().Pitch, TargetTransform.GetRotation().Rotator().Yaw, TargetTransform.GetRotation().Rotator().Roll + 90.0f);
-	TargetTransform.SetRotation(NewRotation.Quaternion());
-	PhysicsHandle->TargetTransform = TargetTransform;
-}
+		// Stop player movement (Assuming APlayerCharacter has a function to stop movement)
+		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
+		if (PlayerCharacter)
+		{
+			PlayerCharacter->bCanMove = false;
+		}
 
+		// Turn off physics in the grabbed component
+		UPrimitiveComponent* GrabbedComponent = GetPhysicsHandle()->GetGrabbedComponent();
+		if (GrabbedComponent)
+		{
+			GrabbedComponent->SetSimulatePhysics(false);
+		}
+
+		// Release from the physics handler
+		GetPhysicsHandle()->ReleaseComponent();
+		bHasGrabbable = false;
+
+		// Rotate the grabbed component 90 degrees in the X-axis
+		FRotator CurrentRotation = GrabbedComponent->GetComponentRotation();
+		// Rotate the grabbed component by adding 90 degrees to the total rotation
+		TotalRotation += 90.0f;
+
+		// Ensure total rotation is within the range of 0 to 360 degrees
+		TotalRotation = FMath::Fmod(TotalRotation, 360.0f);
+
+		FRotator NewRotation = FRotator(CurrentRotation.Pitch, CurrentRotation.Yaw , TotalRotation);
+		GrabbedComponent->SetWorldRotation(NewRotation);
+
+		// Grab the component again
+
+		Grab();
+
+		// Turn on necessary flags and settings after re-grabbing
+		if (bHasGrabbable)
+		{
+			PlayerCharacter->bCanMove = true;
+			GrabbedComponent->SetSimulatePhysics(true);
+		}
+	}
+}
 
 UPhysicsHandleComponent* UGrabber::GetPhysicsHandle() const
 {
